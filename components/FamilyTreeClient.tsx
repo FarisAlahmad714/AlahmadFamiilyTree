@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef, memo } from 'react'
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -8,6 +8,7 @@ import {
   MiniMap,
   useNodesState,
   useEdgesState,
+  useReactFlow,
   BackgroundVariant,
   type Edge,
   type Node,
@@ -23,8 +24,34 @@ import FloatingControls from './FloatingControls'
 import PersonDetailPanel from './PersonDetailPanel'
 import AddMemberModal from './AddMemberModal'
 import TreeView3D, { type TreeView3DHandle } from './TreeView3D'
+import SearchBar from './SearchBar'
+import StatsPanel from './StatsPanel'
 
-const nodeTypes = { person: PersonNode }
+type GenLabelNodeType = Node<{ label: string }, 'genLabel'>
+type TreeNode = PersonNodeType | GenLabelNodeType
+
+function GenLabelNode({ data }: { data: { label: string } }) {
+  return (
+    <div
+      style={{
+        fontSize: '10px',
+        fontWeight: 700,
+        color: 'var(--text-secondary)',
+        opacity: 0.4,
+        letterSpacing: '0.1em',
+        textTransform: 'uppercase' as const,
+        whiteSpace: 'nowrap' as const,
+        userSelect: 'none' as const,
+        paddingRight: '10px',
+        borderRight: '1px solid var(--border-color)',
+      }}
+    >
+      {data.label}
+    </div>
+  )
+}
+
+const nodeTypes = { person: PersonNode, genLabel: memo(GenLabelNode) }
 
 // All descendants (children, grandchildren, …) of a given node
 function getDescendants(people: Person[], nodeId: string): Set<string> {
@@ -51,11 +78,30 @@ function getChildCounts(people: Person[]): Map<string, number> {
   return counts
 }
 
+function computeGenerationDepths(people: Person[]): Map<string, number> {
+  const depths = new Map<string, number>()
+  const queue = people
+    .filter((p) => !p.parentId)
+    .map((p) => ({ id: p.id, depth: 0 }))
+  while (queue.length) {
+    const { id, depth } = queue.shift()!
+    if (depths.has(id)) continue
+    depths.set(id, depth)
+    for (const p of people) {
+      if (p.parentId === id) queue.push({ id: p.id, depth: depth + 1 })
+    }
+  }
+  for (const p of people) {
+    if (!depths.has(p.id)) depths.set(p.id, 0)
+  }
+  return depths
+}
+
 function getLayoutedElements(
   people: Person[],
   collapsedIds: Set<string>,
   onToggleCollapse: (id: string) => void
-): { nodes: PersonNodeType[]; edges: Edge[] } {
+): { nodes: TreeNode[]; edges: Edge[] } {
   // 1. Compute which nodes are hidden (descendants of collapsed nodes)
   const hiddenIds = new Set<string>()
   for (const cid of collapsedIds) {
@@ -83,6 +129,20 @@ function getLayoutedElements(
   }
 
   dagre.layout(g)
+
+  // Generation label nodes
+  const genDepths = computeGenerationDepths(visible)
+  const genYMap = new Map<number, number>()
+  let treeMinX = Infinity
+
+  for (const p of visible) {
+    const pos = g.node(p.id)
+    if (!pos) continue
+    const depth = genDepths.get(p.id) ?? 0
+    if (!genYMap.has(depth) || pos.y < (genYMap.get(depth) ?? Infinity)) genYMap.set(depth, pos.y)
+    if (pos.x - W / 2 < treeMinX) treeMinX = pos.x - W / 2
+  }
+  const labelX = treeMinX - 115
 
   // 3. Build React Flow nodes
   const nodes: PersonNodeType[] = visible.map((p) => {
@@ -112,7 +172,41 @@ function getLayoutedElements(
       style: { stroke: 'var(--edge-color)', strokeWidth: 2 },
     }))
 
-  return { nodes, edges }
+  // Spouse edges (dashed pink)
+  const spouseEdges: Edge[] = []
+  const seenPairs = new Set<string>()
+  for (const p of visible) {
+    for (const sid of p.spouseIds) {
+      const key = [p.id, sid].sort().join('~~')
+      if (seenPairs.has(key)) continue
+      if (!visible.find((v) => v.id === sid)) continue
+      seenPairs.add(key)
+      spouseEdges.push({
+        id: `spouse~~${key}`,
+        source: p.id,
+        target: sid,
+        type: 'straight',
+        style: { stroke: 'rgba(236,72,153,0.5)', strokeWidth: 1.5, strokeDasharray: '5,4' },
+      })
+    }
+  }
+
+  // Generation label nodes
+  const genNodes: GenLabelNodeType[] = []
+  for (const [gen, y] of genYMap.entries()) {
+    genNodes.push({
+      id: `__gen-${gen}`,
+      type: 'genLabel' as const,
+      position: { x: labelX, y: y - H / 2 },
+      data: { label: gen === 0 ? 'Founders' : `Gen ${gen + 1}` },
+      draggable: false,
+      selectable: false,
+      focusable: false,
+      connectable: false,
+    })
+  }
+
+  return { nodes: [...nodes, ...genNodes] as TreeNode[], edges: [...edges, ...spouseEdges] }
 }
 
 interface Props {
@@ -141,9 +235,12 @@ function FamilyTreeInner({ initialData, session }: Props) {
     })
   }, [])
 
+  const [showSearch, setShowSearch] = useState(false)
+  const [showStats, setShowStats] = useState(false)
+
   // Seed initial state
   const seed = getLayoutedElements(initialData.people, new Set(), handleToggleCollapse)
-  const [nodes, setNodes, onNodesChange] = useNodesState<PersonNodeType>(seed.nodes)
+  const [nodes, setNodes, onNodesChange] = useNodesState<TreeNode>(seed.nodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(seed.edges)
 
   // Re-layout whenever data or collapsed state changes
@@ -157,16 +254,52 @@ function FamilyTreeInner({ initialData, session }: Props) {
     setEdges(e)
   }, [familyData, collapsedNodes, handleToggleCollapse, setNodes, setEdges])
 
+  // Deep link: restore selected person from URL on mount
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const pid = new URLSearchParams(window.location.search).get('p')
+    if (!pid) return
+    const found = familyData.people.find((p) => p.id === pid)
+    if (found) {
+      setSelectedPerson(found)
+      setTimeout(() => zoomToNode(pid), 350)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const { setCenter } = useReactFlow()
+
+  const zoomToNode = useCallback(
+    (personId: string) => {
+      const node = nodes.find((n) => n.id === personId)
+      if (!node) return
+      setCenter(node.position.x + 98, node.position.y + 60, { zoom: 1.5, duration: 700 })
+    },
+    [nodes, setCenter]
+  )
+
   const refreshTree = useCallback((data: FamilyData) => {
     setFamilyData(data)
   }, [])
 
   const handleNodeClick = useCallback(
     (_: React.MouseEvent, node: Node) => {
+      if (node.type !== 'person') return
       const person = familyData.people.find((p) => p.id === node.id) ?? null
       setSelectedPerson(person)
+      if (person) window.history.replaceState(null, '', `/tree?p=${person.id}`)
     },
     [familyData]
+  )
+
+  const handleSearchSelect = useCallback(
+    (person: Person) => {
+      setSelectedPerson(person)
+      zoomToNode(person.id)
+      window.history.replaceState(null, '', `/tree?p=${person.id}`)
+      setShowSearch(false)
+    },
+    [zoomToNode]
   )
 
   const toggleTheme = () => {
@@ -205,7 +338,10 @@ function FamilyTreeInner({ initialData, session }: Props) {
           onEdgesChange={onEdgesChange}
           nodeTypes={nodeTypes}
           onNodeClick={handleNodeClick}
-          onPaneClick={() => setSelectedPerson(null)}
+          onPaneClick={() => {
+            setSelectedPerson(null)
+            window.history.replaceState(null, '', '/tree')
+          }}
           nodesDraggable={false}
           fitView
           fitViewOptions={{ padding: 0.1 }}
@@ -263,6 +399,25 @@ function FamilyTreeInner({ initialData, session }: Props) {
         </motion.div>
       </div>
 
+      <AnimatePresence>
+        {showSearch && (
+          <SearchBar
+            people={familyData.people}
+            onSelect={handleSearchSelect}
+            onClose={() => setShowSearch(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showStats && (
+          <StatsPanel
+            people={familyData.people}
+            onClose={() => setShowStats(false)}
+          />
+        )}
+      </AnimatePresence>
+
       <FloatingControls
         isDark={isDark}
         onToggleTheme={toggleTheme}
@@ -280,6 +435,10 @@ function FamilyTreeInner({ initialData, session }: Props) {
         onZoomIn={viewMode === 'tree3d' ? () => tree3dRef.current?.zoomIn() : undefined}
         onZoomOut={viewMode === 'tree3d' ? () => tree3dRef.current?.zoomOut() : undefined}
         onFitView={viewMode === 'tree3d' ? () => tree3dRef.current?.fitView() : undefined}
+        showSearch={showSearch}
+        onToggleSearch={() => setShowSearch((s) => !s)}
+        showStats={showStats}
+        onToggleStats={() => setShowStats((s) => !s)}
       />
 
       <AnimatePresence>

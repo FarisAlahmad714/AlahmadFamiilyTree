@@ -46,6 +46,14 @@ export default function PersonDetailPanel({
   const children = allPeople.filter((p) => p.parentId === person.id)
   const spouses = allPeople.filter((p) => person.spouseIds.includes(p.id))
 
+  // Lineage chain: walk parentId chain up to root
+  const lineage: Person[] = []
+  let curr: Person | undefined = person
+  while (curr) {
+    lineage.unshift(curr)
+    curr = allPeople.find((p) => p.id === curr!.parentId)
+  }
+
   const displayName =
     language === 'ar' && person.firstNameAr ? person.firstNameAr : person.firstName
 
@@ -587,6 +595,33 @@ export default function PersonDetailPanel({
                       {children.map((c) => (
                         <span key={c.id} style={{ fontSize: 12, padding: '2px 8px', borderRadius: '20px', background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}>
                           {language === 'ar' && c.firstNameAr ? c.firstNameAr : c.firstName}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {lineage.length > 1 && (
+                  <div>
+                    <p style={labelStyle}>Lineage</p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '3px' }}>
+                      {lineage.map((p, i) => (
+                        <span key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                          <span
+                            style={{
+                              fontSize: 11,
+                              padding: '2px 7px',
+                              borderRadius: '20px',
+                              background: p.id === person.id ? 'var(--node-root-bg)' : 'var(--bg-secondary)',
+                              color: p.id === person.id ? 'var(--accent)' : 'var(--text-secondary)',
+                              border: p.id === person.id ? '1px solid var(--accent)' : '1px solid var(--border-color)',
+                              fontWeight: p.id === person.id ? 700 : 400,
+                            }}
+                          >
+                            {language === 'ar' && p.firstNameAr ? p.firstNameAr : p.firstName}
+                          </span>
+                          {i < lineage.length - 1 && (
+                            <span style={{ fontSize: 10, color: 'var(--text-secondary)', opacity: 0.5 }}>→</span>
+                          )}
                         </span>
                       ))}
                     </div>

@@ -73,6 +73,7 @@ function PersonNode({ data, selected }: NodeProps<PersonNodeType>) {
           transition: 'box-shadow 0.18s, border-color 0.18s',
           position: 'relative',
           overflow: 'hidden',
+          opacity: person.deathYear ? 0.72 : 1,
         }}
       >
         {/* Top accent stripe */}
@@ -164,6 +165,9 @@ function PersonNode({ data, selected }: NodeProps<PersonNodeType>) {
               >
                 {displayName}
               </span>
+              {person.deathYear && (
+                <span style={{ flexShrink: 0, fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 400 }}>†</span>
+              )}
               {isPatriarch && (
                 <span
                   style={{
@@ -209,7 +213,11 @@ function PersonNode({ data, selected }: NodeProps<PersonNodeType>) {
               }}
             >
               {person.surname ? person.surname : isSpouseIn ? 'by marriage' : ''}
-              {person.birthYear ? ` · ${person.birthYear}` : ''}
+              {person.birthYear && person.deathYear
+                ? ` · ${person.birthYear} – ${person.deathYear}`
+                : person.birthYear
+                ? ` · ${person.birthYear}`
+                : ''}
             </div>
 
             {person.location && (

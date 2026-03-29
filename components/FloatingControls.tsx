@@ -1,7 +1,7 @@
 'use client'
 
 import { useReactFlow } from '@xyflow/react'
-import { ZoomIn, ZoomOut, Maximize2, Map, Sun, Moon, UserPlus, LogOut, Expand, Box, Network } from 'lucide-react'
+import { ZoomIn, ZoomOut, Maximize2, Map, Sun, Moon, UserPlus, LogOut, Expand, Box, Network, Search, BarChart2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import type { Session } from '@/lib/auth'
 
@@ -22,6 +22,10 @@ interface Props {
   onZoomIn?: () => void
   onZoomOut?: () => void
   onFitView?: () => void
+  showSearch: boolean
+  onToggleSearch: () => void
+  showStats: boolean
+  onToggleStats: () => void
 }
 
 export default function FloatingControls({
@@ -40,6 +44,10 @@ export default function FloatingControls({
   onZoomIn,
   onZoomOut,
   onFitView,
+  showSearch,
+  onToggleSearch,
+  showStats,
+  onToggleStats,
 }: Props) {
   const { zoomIn: rfZoomIn, zoomOut: rfZoomOut, fitView: rfFitView } = useReactFlow()
   const zoomIn = onZoomIn ?? rfZoomIn
@@ -80,6 +88,32 @@ export default function FloatingControls({
         className="absolute right-5 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-2"
         style={{ pointerEvents: 'all' }}
       >
+        <button
+          style={{
+            ...btn,
+            background: showStats ? 'var(--node-root-bg)' : 'var(--bg-card)',
+            borderColor: showStats ? 'var(--accent)' : 'var(--border-color)',
+            color: showStats ? 'var(--accent)' : 'var(--text-primary)',
+          }}
+          onClick={onToggleStats}
+          title="Family statistics"
+        >
+          <BarChart2 size={17} />
+        </button>
+
+        <button
+          style={{
+            ...btn,
+            background: showSearch ? 'var(--node-root-bg)' : 'var(--bg-card)',
+            borderColor: showSearch ? 'var(--accent)' : 'var(--border-color)',
+            color: showSearch ? 'var(--accent)' : 'var(--text-primary)',
+          }}
+          onClick={onToggleSearch}
+          title="Search members"
+        >
+          <Search size={17} />
+        </button>
+
         {/* 3D / Graph toggle */}
         <button
           style={{
