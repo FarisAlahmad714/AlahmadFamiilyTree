@@ -651,13 +651,14 @@ const PersonOrb = memo(function PersonOrb({ node, maxDepth, isSelected, onSelect
   const oliveScale = isPatriarch ? 8.0 : Math.max(4.0, 6.5 - (depth / Math.max(maxDepth, 1)) * 2.5)
   const oliveHalfH = 0.0495 * oliveScale
 
-  // Olive-green palette — dark/light olive greens, no purple/red
-  const baseColor   = isPatriarch ? '#5a7a1e' : isFemale ? '#3d6828' : '#253d14'
-  const emissiveCol = isPatriarch ? '#a8d830' : isFemale ? '#6ba345' : '#4a7c30'
+  // Realistic olive colours — deep, almost black-green like actual Kalamata olives
+  // Emissive is only used as a glow tint when hovered/selected; default is 0.
+  const baseColor   = isPatriarch ? '#3a5c12' : isFemale ? '#2a4a18' : '#1a3010'
+  const emissiveCol = isPatriarch ? '#7ab020' : isFemale ? '#4a7a28' : '#2a5018'
 
   const labelCol = isDark
-    ? (isPatriarch ? '#d4f17c' : isFemale ? '#a8d888' : '#7bbf5a')
-    : (isPatriarch ? '#3a5010' : isFemale ? '#2d5020' : '#1e3a10')
+    ? (isPatriarch ? '#c8e870' : isFemale ? '#90cc70' : '#6aaa48')
+    : (isPatriarch ? '#2e4208' : isFemale ? '#243618' : '#182a0c')
 
   // Per-olive seeded values: stable tilt + phase offset
   const seed  = useMemo(() => ((person.id.charCodeAt(0) || 0) + (person.id.charCodeAt(1) || 0)) / 150, [person.id])
@@ -674,27 +675,31 @@ const PersonOrb = memo(function PersonOrb({ node, maxDepth, isSelected, onSelect
     }
 
     if (oliveMeshRef.current) {
+      // Scale: pop up when hovered/selected, gentle patriarch breath
       const want = isPatriarch
-        ? 1 + Math.sin(t * 1.1) * 0.08
-        : (isSelected || hovered) ? 1.35 : 1 + Math.sin(t * 1.8) * 0.03
+        ? 1 + Math.sin(t * 1.1) * 0.05
+        : (isSelected || hovered) ? 1.30 : 1.0
       const cur = oliveMeshRef.current.scale.x
       oliveMeshRef.current.scale.set(
         cur + (want - cur) * 0.10,
         cur + (want - cur) * 0.10,
         cur + (want - cur) * 0.10,
       )
+      // Emissive: 0 at rest so the actual olive shape is visible from lighting.
+      // Only glows when interacted with so the 3D olive geometry reads clearly.
       const mat = oliveMeshRef.current.material as THREE.MeshStandardMaterial
       const wantE = isPatriarch
-        ? 0.80 + Math.sin(t * 1.6) * 0.40
-        : (isSelected || hovered) ? 2.5
-        : isDeceased ? 0.10
-        : 0.45 + Math.sin(t * 2.2) * 0.20
+        ? 0.08 + Math.sin(t * 1.1) * 0.04   // very subtle patriarch shimmer
+        : (isSelected || hovered) ? 0.70      // bright glow on interaction
+        : isDeceased ? 0.0
+        : 0.0                                  // zero — rely on scene lighting
       mat.emissiveIntensity += (wantE - mat.emissiveIntensity) * 0.10
     }
 
     if (glowRef.current) {
       const mat = glowRef.current.material as THREE.MeshBasicMaterial
-      const want = isPatriarch ? 0.12 : (isSelected || hovered) ? 0.14 : 0
+      // Glow sphere only visible on interaction / patriarch
+      const want = isPatriarch ? 0.08 : (isSelected || hovered) ? 0.18 : 0
       mat.opacity += (want - mat.opacity) * 0.12
     }
   })
@@ -730,9 +735,9 @@ const PersonOrb = memo(function PersonOrb({ node, maxDepth, isSelected, onSelect
             <meshStandardMaterial
               color={baseColor}
               emissive={emissiveCol}
-              emissiveIntensity={0.50}
-              roughness={isPatriarch ? 0.25 : 0.40}
-              metalness={0.10}
+              emissiveIntensity={0.0}
+              roughness={isPatriarch ? 0.30 : 0.52}
+              metalness={0.06}
             />
           </mesh>
         </group>
@@ -865,8 +870,10 @@ function Scene({ people, selectedPersonId, onSelectPerson, isDark, actionsRef }:
 
       {/* ── Post-processing ── */}
       <EffectComposer multisampling={0} enableNormalPass={false}>
-        <Bloom luminanceThreshold={isDark ? 0.10 : 0.38} luminanceSmoothing={0.88}
-               intensity={isDark ? 2.0 : 0.48} mipmapBlur />
+        {/* Threshold raised so unlit olive geometry never blooms.
+            Bloom fires only when emissive spikes on hover/select. */}
+        <Bloom luminanceThreshold={isDark ? 0.52 : 0.60} luminanceSmoothing={0.80}
+               intensity={isDark ? 1.2 : 0.35} mipmapBlur />
         <Vignette offset={0.14} darkness={isDark ? 0.58 : 0.24} />
       </EffectComposer>
     </>
