@@ -1,7 +1,7 @@
 'use client'
 
 import { useReactFlow } from '@xyflow/react'
-import { ZoomIn, ZoomOut, Maximize2, Map, Sun, Moon, UserPlus, LogOut, Expand, Box, Network, Search, BarChart2, Leaf } from 'lucide-react'
+import { ZoomIn, ZoomOut, Maximize2, Map, Sun, Moon, UserPlus, LogOut, Expand, Search, BarChart2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import type { Session } from '@/lib/auth'
 
@@ -18,7 +18,6 @@ interface Props {
   language: 'en' | 'ar'
   onToggleLanguage: () => void
   viewMode: 'graph' | 'tree3d' | 'olive'
-  onToggleView: () => void
   onZoomIn?: () => void
   onZoomOut?: () => void
   onFitView?: () => void
@@ -40,7 +39,6 @@ export default function FloatingControls({
   language,
   onToggleLanguage,
   viewMode,
-  onToggleView,
   onZoomIn,
   onZoomOut,
   onFitView,
@@ -112,26 +110,6 @@ export default function FloatingControls({
           title="Search members"
         >
           <Search size={17} />
-        </button>
-
-        {/* View cycle: graph → 3D spheres → olive tree → graph */}
-        <button
-          style={{
-            ...btn,
-            background: viewMode !== 'graph' ? 'var(--node-root-bg)' : 'var(--bg-card)',
-            borderColor: viewMode !== 'graph' ? 'var(--accent)' : 'var(--border-color)',
-            color: viewMode !== 'graph' ? 'var(--accent)' : 'var(--text-primary)',
-          }}
-          onClick={onToggleView}
-          title={
-            viewMode === 'graph'   ? 'Switch to 3D view' :
-            viewMode === 'tree3d'  ? 'Switch to olive tree' :
-                                     'Switch to graph view'
-          }
-        >
-          {viewMode === 'graph'  ? <Box size={17} /> :
-           viewMode === 'tree3d' ? <Leaf size={17} /> :
-                                   <Network size={17} />}
         </button>
 
         {divider}

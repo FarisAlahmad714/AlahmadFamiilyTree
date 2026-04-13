@@ -877,9 +877,10 @@ const OliveTreeView = forwardRef<TreeView3DHandle, Props>(function OliveTreeView
 ) {
   const actionsRef = useRef<TreeView3DHandle>({ zoomIn: () => {}, zoomOut: () => {}, fitView: () => {} })
   useImperativeHandle(ref, () => ({
-    zoomIn:  () => actionsRef.current.zoomIn(),
-    zoomOut: () => actionsRef.current.zoomOut(),
-    fitView: () => actionsRef.current.fitView(),
+    zoomIn:   () => actionsRef.current.zoomIn(),
+    zoomOut:  () => actionsRef.current.zoomOut(),
+    fitView:  () => actionsRef.current.fitView(),
+    zoomToId: (id: string) => actionsRef.current.zoomToId?.(id),
   }))
 
   return (

@@ -397,7 +397,7 @@ function FamilyTreeInner({ initialData, session }: Props) {
       )}
 
       {/* Title */}
-      <div className="absolute top-5 left-1/2 -translate-x-1/2 pointer-events-none z-10">
+      <div className="absolute top-5 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2" style={{ pointerEvents: 'none' }}>
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -413,6 +413,84 @@ function FamilyTreeInner({ initialData, session }: Props) {
           <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
             {familyData.people.length} members · Rooted in AbuBakr · {collapsedNodes.size > 0 && `${collapsedNodes.size} branch${collapsedNodes.size > 1 ? 'es' : ''} collapsed`}
           </p>
+        </motion.div>
+
+        {/* View toggler — 3 explicit buttons, centered under the title */}
+        <motion.div
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+          style={{
+            pointerEvents: 'auto',
+            display: 'flex',
+            gap: '3px',
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-color)',
+            borderRadius: '12px',
+            padding: '3px',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+          }}
+        >
+          {([
+            {
+              mode: 'graph' as const,
+              label: 'Graph',
+              icon: (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <circle cx="5" cy="12" r="2.2"/><circle cx="19" cy="6" r="2.2"/><circle cx="19" cy="18" r="2.2"/>
+                  <line x1="7" y1="11.2" x2="17" y2="7.2"/><line x1="7" y1="12.8" x2="17" y2="16.8"/>
+                </svg>
+              ),
+            },
+            {
+              mode: 'tree3d' as const,
+              label: '3D',
+              icon: (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 3L21 8.5V15.5L12 21L3 15.5V8.5L12 3z"/>
+                  <line x1="12" y1="3" x2="12" y2="21"/>
+                  <line x1="3" y1="8.5" x2="21" y2="8.5"/>
+                </svg>
+              ),
+            },
+            {
+              mode: 'olive' as const,
+              label: 'Olive',
+              icon: (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="22" x2="12" y2="10"/>
+                  <path d="M12 10C10 10 6 8 5 4C8 4 12 7 12 10z"/>
+                  <path d="M12 10C14 10 18 8 19 4C16 4 12 7 12 10z"/>
+                  <path d="M12 16C10 16 7 14 7 10C9.5 10 12 13 12 16z"/>
+                  <path d="M12 16C14 16 17 14 17 10C14.5 10 12 13 12 16z"/>
+                </svg>
+              ),
+            },
+          ] as const).map(({ mode, label, icon }) => {
+            const active = viewMode === mode
+            return (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                title={label}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '5px',
+                  padding: '5px 11px',
+                  borderRadius: '9px',
+                  border: 'none',
+                  fontSize: '12px', fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                  background: active ? 'var(--accent)' : 'transparent',
+                  color: active ? '#fff' : 'var(--text-secondary)',
+                  boxShadow: active ? '0 1px 8px var(--accent-glow)' : 'none',
+                }}
+              >
+                {icon}{label}
+              </button>
+            )
+          })}
         </motion.div>
       </div>
 
@@ -448,7 +526,6 @@ function FamilyTreeInner({ initialData, session }: Props) {
         language={language}
         onToggleLanguage={() => setLanguage(l => l === 'en' ? 'ar' : 'en')}
         viewMode={viewMode}
-        onToggleView={() => setViewMode(m => m === 'graph' ? 'tree3d' : m === 'tree3d' ? 'olive' : 'graph')}
         onZoomIn={viewMode === 'tree3d' ? () => tree3dRef.current?.zoomIn() : viewMode === 'olive' ? () => oliveRef.current?.zoomIn() : undefined}
         onZoomOut={viewMode === 'tree3d' ? () => tree3dRef.current?.zoomOut() : viewMode === 'olive' ? () => oliveRef.current?.zoomOut() : undefined}
         onFitView={viewMode === 'tree3d' ? () => tree3dRef.current?.fitView() : viewMode === 'olive' ? () => oliveRef.current?.fitView() : undefined}
