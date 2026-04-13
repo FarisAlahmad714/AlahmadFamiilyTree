@@ -297,11 +297,17 @@ function FamilyTreeInner({ initialData, session }: Props) {
   const handleSearchSelect = useCallback(
     (person: Person) => {
       setSelectedPerson(person)
-      zoomToNode(person.id)
+      if (viewMode === 'olive') {
+        oliveRef.current?.zoomToId?.(person.id)
+      } else if (viewMode === 'tree3d') {
+        tree3dRef.current?.zoomToId?.(person.id)
+      } else {
+        zoomToNode(person.id)
+      }
       window.history.replaceState(null, '', `/tree?p=${person.id}`)
       setShowSearch(false)
     },
-    [zoomToNode]
+    [zoomToNode, viewMode]
   )
 
   const toggleTheme = () => {

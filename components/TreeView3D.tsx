@@ -559,6 +559,7 @@ export interface TreeView3DHandle {
   zoomIn: () => void
   zoomOut: () => void
   fitView: () => void
+  zoomToId?: (id: string) => void
 }
 
 interface Props {

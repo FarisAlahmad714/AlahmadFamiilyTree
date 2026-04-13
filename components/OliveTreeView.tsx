@@ -140,6 +140,83 @@ const RAW_OLIVE_POSITIONS: [number, number, number][] = [
   [8.031, 1.425, 1.489],
 ]
 
+// ── Bough fruit pools (fruits grouped by their actual Blender bough) ────────
+// Each named bough (N/S/E/W/NE/NW/SE + T2a/T2b) gets its own fruit pool.
+// Family branches are locked to specific boughs so families never mix.
+const BOUGH_AZ: Record<string, number> = {
+  'Bough_E':    2.6  * (Math.PI / 180),
+  'Bough_T2b':  16.3 * (Math.PI / 180),
+  'Bough_SE':   57.7 * (Math.PI / 180),
+  'Bough_S':   100.8 * (Math.PI / 180),
+  'Bough_W':  -177.7 * (Math.PI / 180),
+  'Bough_NW': -129.9 * (Math.PI / 180),
+  'Bough_NE':  -40.4 * (Math.PI / 180),
+  'Bough_N':   -8.3  * (Math.PI / 180),
+  'Bough_T2a': -18.1 * (Math.PI / 180),
+}
+const BOUGH_FRUITS: Record<string, [number, number, number][]> = {
+  'Bough_E': [
+    [9.391, 5.369, 0.937], [7.787, 4.986, 0.497], [10.112, 4.462, 1.164],
+    [8.805, 3.745, 0.434], [9.818, 2.945, 0.594], [8.753, 2.791, 0.432],
+    [9.524, 2.388, 0.945], [8.098, 2.294, 1.233], [10.068, 2.245, 0.031],
+  ],
+  'Bough_T2b': [
+    [7.022, 5.558, 1.689], [9.885, 5.041, 1.69],  [8.366, 3.981, 3.181],
+    [9.45,  3.595, 4.092], [10.578,3.566, 3.626],  [9.629, 3.5,   2.743],
+    [9.939, 3.403, 2.285], [6.377, 2.94,  4.235],  [5.671, 2.861, 1.877],
+    [6.74,  2.844, 4.174], [6.265, 2.708, 3.393],  [5.501, 2.622, 2.291],
+    [7.738, 2.596, 2.991], [10.194,2.21,  2.771],  [8.031, 1.425, 1.489],
+  ],
+  'Bough_SE': [
+    [1.905, 4.824, 9.408], [2.134, 3.843, 8.871], [1.703, 3.735, 7.171],
+    [2.267, 3.691, 7.992], [6.666, 3.278, 8.411], [5.421, 3.193, 7.243],
+    [6.658, 3.001, 8.146], [4.192, 2.737, 8.638], [7.371, 2.648, 8.301],
+    [5.674, 2.218, 9.105],
+  ],
+  'Bough_S': [
+    [1.753, 5.692, 9.926],  [1.137, 5.412, 9.27],   [1.128, 5.245, 9.177],
+    [-2.457,4.834, 8.847],  [-2.528,4.814, 9.23],   [1.325, 4.741, 8.588],
+    [0.637, 4.493, 9.332],  [-3.55, 4.412, 7.064],  [1.487, 4.371, 8.247],
+    [-3.2,  4.291, 9.868],  [-2.476,3.979, 7.381],  [-2.622,3.931, 8.43],
+    [1.191, 3.649, 8.418],  [0.068, 3.38,  6.523],
+  ],
+  'Bough_W': [
+    [-8.773,5.953,-1.474],  [-7.92, 5.148,-2.517],  [-8.151,5.075,-2.294],
+    [-9.01, 5.058,-3.25],   [-9.104,4.831,-0.319],  [-9.487,4.726,-2.824],
+    [-8.404,4.449,-2.001],  [-7.693,4.27, -2.024],  [-9.562,4.241,-2.631],
+    [-5.444,4.212,-2.134],  [-8.047,4.104,-2.864],  [-7.281,4.048,-0.503],
+    [-6.692,3.742,-1.466],  [-7.207,3.48, -1.228],  [-6.605,3.409,-2.961],
+    [-9.57, 3.399, 2.96],   [-10.423,3.27, 3.557],  [-8.536,3.265, 2.379],
+    [-9.461,2.895, 3.974],  [-10.983,2.832,1.568],  [-8.884,2.518, 1.035],
+  ],
+  'Bough_NW': [
+    [-6.499,5.697,-6.74],   [-6.425,5.671,-7.139],  [-8.775,5.399,-4.643],
+    [-4.601,5.317,-7.872],  [-6.508,5.284,-7.199],  [-8.042,5.227,-4.592],
+    [-6.325,5.091,-7.818],  [-9.089,5.019,-5.341],  [-6.249,5.013,-4.685],
+  ],
+  'Bough_NE': [
+    [6.424, 7.098,-4.088],  [7.98,  6.3,  -4.576],  [7.316, 6.156,-5.915],
+    [7.643, 6.003,-7.881],  [7.658, 5.766,-6.467],  [6.316, 5.737,-6.779],
+    [8.251, 5.35, -5.639],  [6.857, 4.909,-8.55],   [6.7,   3.737,-4.386],
+  ],
+  'Bough_N': [
+    [9.081, 6.261,-0.875],  [9.153, 5.553,-1.938],  [10.398,4.754,-0.96],
+    [10.348,4.66, -2.051],  [8.078, 4.638,-1.147],  [6.803, 4.285,-0.359],
+    [10.384,4.234,-1.302],  [10.851,4.225,-1.9],    [6.42,  3.947,-1.498],
+    [6.289, 3.691,-0.684],  [7.609, 3.434,-1.449],
+  ],
+  'Bough_T2a': [
+    [8.287, 7.304,-4.39],   [8.568, 7.169,-2.522],  [8.469, 6.996,-3.73],
+    [7.456, 6.7,  -2.956],  [9.904, 6.467,-2.464],  [7.633, 6.149,-2.461],
+    [9.124, 5.504,-3.736],  [10.62, 5.037,-2.968],  [8.8,   4.853,-2.618],
+    [6.682, 3.948,-3.473],  [6.953, 3.466,-2.229],  [8.289, 3.323,-4.195],
+    [7.395, 3.101,-2.672],  [7.328, 3.041,-2.584],  [6.261, 2.911,-2.682],
+    [6.868, 2.87, -3.526],
+  ],
+}
+// Boughs sorted clockwise by azimuth (used for bough → family assignment)
+const BOUGHS_SORTED = Object.keys(BOUGH_AZ).sort((a, b) => BOUGH_AZ[a] - BOUGH_AZ[b])
+
 // ── Seeded deterministic random ────────────────────────────────────────────
 function seededRand(seed: number): number {
   return ((Math.sin(seed * 127.1 + 311.7) * 43758.5453) % 1 + 1) % 1
@@ -200,20 +277,53 @@ function computeLayout(people: Person[]): {
     computeAz(r.id, (i / Math.max(roots.length, 1)) * Math.PI * 2, Math.PI * 2)
   )
 
-  // ── Phase 2: assign real Blender fruit positions ───────────────────────
-  // For each person, find the closest unoccupied Blender fruit that lies
-  // within their azimuthal sector and at approximately the right canopy height.
-  const fruitPool = RAW_OLIVE_POSITIONS.map(([x, y, z]) => ({
-    x, y, z,
-    az: Math.atan2(z, x),   // −π … π
-    taken: false,
-  }))
+  // ── Phase 2: hard bough partitioning ─────────────────────────────────────
+  // Each top-level family branch (depth=1) is locked to one Blender bough.
+  // All descendants inherit that bough. Families are guaranteed to never mix.
 
+  // 2a. Build per-bough mutable pools
+  const boughPools: Record<string, Array<{x:number;y:number;z:number;taken:boolean}>> = {}
+  for (const [b, fruits] of Object.entries(BOUGH_FRUITS)) {
+    boughPools[b] = fruits.map(([x,y,z]) => ({x,y,z,taken:false}))
+  }
+  // Fallback pool for overflow (shouldn't happen normally)
+  const fallbackPool = RAW_OLIVE_POSITIONS.map(([x,y,z]) => ({x,y,z,taken:false}))
+
+  // 2b. Assign each top-level child (depth=1) to the nearest unused bough
+  const depth1Ids = people
+    .filter(p => (depthOf.get(p.id) ?? 0) === 1)
+    .sort((a,b) => (azCenterOf.get(a.id)??0) - (azCenterOf.get(b.id)??0))
+
+  const boughOf = new Map<string, string>()  // personId → boughName
+  const usedBoughs = new Set<string>()
+
+  function azAngDiff(a: number, b: number): number {
+    const d = Math.abs(a - b) % (2 * Math.PI)
+    return d > Math.PI ? 2 * Math.PI - d : d
+  }
+
+  for (const p of depth1Ids) {
+    const pAz = azCenterOf.get(p.id) ?? 0
+    // Prefer unused boughs; if all used, allow reuse (large families)
+    let bestB = BOUGHS_SORTED[0], bestScore = Infinity
+    for (const b of BOUGHS_SORTED) {
+      const diff = azAngDiff(BOUGH_AZ[b], pAz)
+      const penalty = usedBoughs.has(b) ? Math.PI : 0
+      if (diff + penalty < bestScore) { bestScore = diff + penalty; bestB = b }
+    }
+    boughOf.set(p.id, bestB)
+    usedBoughs.add(bestB)
+  }
+
+  // 2c. Propagate bough assignment down to all descendants
+  function propagateBough(id: string, bough: string) {
+    boughOf.set(id, bough)
+    for (const c of (childrenOf.get(id) ?? [])) propagateBough(c.id, bough)
+  }
+  for (const p of depth1Ids) propagateBough(p.id, boughOf.get(p.id)!)
+
+  // 2d. Assign fruit positions depth-by-depth within each bough's pool
   const positions = new Map<string, THREE.Vector3>()
-
-  // Process depth-by-depth (patriarch → children → grandchildren …).
-  // Within each depth, sort by azimuth so adjacent family branches
-  // get adjacent fruit positions.
   const byDepth = new Map<number, string[]>()
   for (const p of people) {
     const d = depthOf.get(p.id) ?? 0
@@ -224,38 +334,46 @@ function computeLayout(people: Person[]): {
   for (let d = 0; d <= maxDepth; d++) {
     const ids = (byDepth.get(d) ?? [])
       .slice()
-      .sort((a, b) => (azCenterOf.get(a) ?? 0) - (azCenterOf.get(b) ?? 0))
+      .sort((a,b) => (azCenterOf.get(a)??0) - (azCenterOf.get(b)??0))
 
     for (const id of ids) {
       if (d === 0) {
-        // Patriarch stays at the trunk crown — no fruit needed
         positions.set(id, new THREE.Vector3(0, TRUNK_TOP_Y, 0))
         continue
       }
-
-      const targetAz = azCenterOf.get(id) ?? 0
-      // t = 0 at depth 1 (top of canopy), 1 at maxDepth (bottom)
       const t = Math.min((d - 1) / Math.max(maxDepth - 1, 1), 1)
-      // Target Y slides from top of fruit cluster (Y≈6.8) down to bottom (Y≈1.6)
       const targetY = 6.8 - t * 5.2
 
-      let best = -1
-      let bestScore = Infinity
-      for (let i = 0; i < fruitPool.length; i++) {
-        if (fruitPool[i].taken) continue
-        let azDiff = Math.abs(fruitPool[i].az - targetAz)
-        if (azDiff > Math.PI) azDiff = 2 * Math.PI - azDiff
-        const yDiff = Math.abs(fruitPool[i].y - targetY)
-        // Azimuth match is weighted 5× — keeps family branches in the same
-        // angular sector of the tree. Y match is secondary (spreads by gen).
-        const score = azDiff * 5.0 + yDiff * 0.8
+      const bough = boughOf.get(id) ?? BOUGHS_SORTED[0]
+      const pool = boughPools[bough]
+
+      let best = -1, bestScore = Infinity
+      for (let i = 0; i < pool.length; i++) {
+        if (pool[i].taken) continue
+        // Within a bough: primary sort by Y (generation), tiny az nudge for siblings
+        const yDiff = Math.abs(pool[i].y - targetY)
+        const fAz = Math.atan2(pool[i].z, pool[i].x)
+        const aDiff = azAngDiff(fAz, azCenterOf.get(id) ?? 0)
+        const score = yDiff * 1.0 + aDiff * 0.3
         if (score < bestScore) { bestScore = score; best = i }
       }
-
       if (best >= 0) {
-        fruitPool[best].taken = true
-        const { x, y, z } = fruitPool[best]
+        pool[best].taken = true
+        const {x,y,z} = pool[best]
         positions.set(id, new THREE.Vector3(x, y, z))
+      } else {
+        // Bough exhausted — spill to fallback (global pool)
+        let fb = -1, fbScore = Infinity
+        for (let i = 0; i < fallbackPool.length; i++) {
+          if (fallbackPool[i].taken) continue
+          const score = Math.abs(fallbackPool[i].y - targetY)
+          if (score < fbScore) { fbScore = score; fb = i }
+        }
+        if (fb >= 0) {
+          fallbackPool[fb].taken = true
+          const {x,y,z} = fallbackPool[fb]
+          positions.set(id, new THREE.Vector3(x, y, z))
+        }
       }
     }
   }
@@ -308,163 +426,7 @@ function GLBTree() {
   return <primitive object={cloned} position={[0, GLB_Y, 0]} scale={[GLB_SCALE, GLB_SCALE, GLB_SCALE]} />
 }
 
-// ── Massive gnarled trunk ─────────────────────────────────────────────────
-function OliveTrunk({ isDark }: { isDark: boolean }) {
-  // Main trunk — 16 segments, thick base, aggressive gnarl
-  const segments = useMemo(() => {
-    const NSEG = 16
-    const geos: THREE.TubeGeometry[] = []
-    const trunkH = TRUNK_TOP_Y + 2.2
-    for (let i = 0; i < NSEG; i++) {
-      const t0 = i / NSEG
-      const t1 = (i + 1) / NSEG
-      const y0 = -2.2 + t0 * trunkH
-      const y1 = -2.2 + t1 * trunkH
-      // Three overlapping wobble frequencies — Palestinian olive-level gnarliness
-      const w  = (t: number) => Math.sin(t * 7.3 + 0.5) * 0.32 * Math.sin(t * Math.PI)
-                              + Math.sin(t * 11.1 + 2.1) * 0.10 * Math.sin(t * Math.PI * 0.6)
-      const w2 = (t: number) => Math.cos(t * 5.1 + 1.8) * 0.26 * Math.sin(t * Math.PI)
-                              + Math.cos(t * 9.7 + 0.3) * 0.08 * Math.sin(t * Math.PI * 0.8)
-      const from = new THREE.Vector3(w(t0), y0, w2(t0))
-      const to   = new THREE.Vector3(w(t1), y1, w2(t1))
-      // Base 1.05 → crown 0.24
-      const radius = 1.05 - t0 * 0.81
-      geos.push(new THREE.TubeGeometry(new THREE.LineCurve3(from, to), 2, Math.max(0.24, radius), 12, false))
-    }
-    return geos
-  }, [])
-
-  // 8 massive surface roots + sub-roots
-  const rootGeos = useMemo(() => {
-    const geos: THREE.TubeGeometry[] = []
-    for (let i = 0; i < 8; i++) {
-      const angle  = (i / 8) * Math.PI * 2 + 0.4
-      const len    = 1.8 + seededRand(i * 17) * 0.9
-      const baseR  = 0.30 + seededRand(i * 7) * 0.14
-      const cx     = Math.cos(angle)
-      const cz     = Math.sin(angle)
-      // Root emerges from trunk base, arcs out and dips flat to ground level
-      geos.push(new THREE.TubeGeometry(
-        new THREE.QuadraticBezierCurve3(
-          new THREE.Vector3(cx * 0.35, -1.4, cz * 0.35),
-          new THREE.Vector3(cx * len * 0.50, -1.90, cz * len * 0.50),
-          new THREE.Vector3(cx * len,        -2.15, cz * len),
-        ), 8, baseR, 8, false,
-      ))
-      // Sub-root branching off at ~40% along parent
-      if (seededRand(i * 31) > 0.35) {
-        const sAngle = angle + (seededRand(i * 13) - 0.5) * 1.1
-        const sLen   = len * 0.52
-        geos.push(new THREE.TubeGeometry(
-          new THREE.QuadraticBezierCurve3(
-            new THREE.Vector3(cx * len * 0.38, -1.95, cz * len * 0.38),
-            new THREE.Vector3(Math.cos(sAngle) * sLen * 0.6, -2.05, Math.sin(sAngle) * sLen * 0.6),
-            new THREE.Vector3(Math.cos(sAngle) * sLen,       -2.14, Math.sin(sAngle) * sLen),
-          ), 6, baseR * 0.44, 7, false,
-        ))
-      }
-    }
-    return geos
-  }, [])
-
-  // Second companion trunk — leans hard left, thick and gnarled
-  const trunk2Geos = useMemo(() => {
-    const NSEG = 9
-    const geos: THREE.TubeGeometry[] = []
-    const halfH = TRUNK_TOP_Y * 0.72
-    for (let i = 0; i < NSEG; i++) {
-      const t0 = i / NSEG
-      const t1 = (i + 1) / NSEG
-      const y0 = -1.6 + t0 * halfH
-      const y1 = -1.6 + t1 * halfH
-      const lean = 0.65
-      const from = new THREE.Vector3(lean * t0 + Math.sin(t0 * 5.8) * 0.16, y0, 0.75 * t0 + Math.cos(t0 * 4.2) * 0.12)
-      const to   = new THREE.Vector3(lean * t1 + Math.sin(t1 * 5.8) * 0.16, y1, 0.75 * t1 + Math.cos(t1 * 4.2) * 0.12)
-      const r    = 0.62 - t0 * 0.50
-      geos.push(new THREE.TubeGeometry(new THREE.LineCurve3(from, to), 2, Math.max(0.12, r), 9, false))
-    }
-    return geos
-  }, [])
-
-  useEffect(() => () => {
-    segments.forEach(g => g.dispose())
-    rootGeos.forEach(g => g.dispose())
-    trunk2Geos.forEach(g => g.dispose())
-  }, [segments, rootGeos, trunk2Geos])
-
-  const barkColor = isDark ? '#1e1108' : '#2c1a0a'
-  const rootColor = isDark ? '#140c06' : '#1e1208'
-  const burlColor = isDark ? '#251509' : '#311e0c'
-
-  return (
-    <group>
-      {segments.map((geo, i) => (
-        <mesh key={i} geometry={geo}>
-          <meshStandardMaterial color={barkColor} roughness={0.97} metalness={0.03} />
-        </mesh>
-      ))}
-      {trunk2Geos.map((geo, i) => (
-        <mesh key={`t2-${i}`} geometry={geo}>
-          <meshStandardMaterial color={barkColor} roughness={0.98} metalness={0.02} />
-        </mesh>
-      ))}
-      {rootGeos.map((geo, i) => (
-        <mesh key={`r-${i}`} geometry={geo}>
-          <meshStandardMaterial color={rootColor} roughness={0.99} />
-        </mesh>
-      ))}
-      {/* Crown junction — cluster of burled knobs where trunk meets boughs */}
-      <mesh position={[0, TRUNK_TOP_Y + 0.05, 0]}>
-        <sphereGeometry args={[0.58, 12, 9]} />
-        <meshStandardMaterial color={burlColor} roughness={0.98} metalness={0.02} />
-      </mesh>
-      <mesh position={[0.28, TRUNK_TOP_Y + 0.30, 0.18]}>
-        <sphereGeometry args={[0.34, 9, 7]} />
-        <meshStandardMaterial color={burlColor} roughness={0.99} />
-      </mesh>
-      <mesh position={[-0.22, TRUNK_TOP_Y + 0.22, -0.20]}>
-        <sphereGeometry args={[0.28, 9, 7]} />
-        <meshStandardMaterial color={burlColor} roughness={0.99} />
-      </mesh>
-      <mesh position={[0.10, TRUNK_TOP_Y + 0.55, -0.12]}>
-        <sphereGeometry args={[0.22, 8, 6]} />
-        <meshStandardMaterial color={burlColor} roughness={0.99} />
-      </mesh>
-    </group>
-  )
-}
-
-// ── Branch ────────────────────────────────────────────────────────────────
-const Branch = memo(function Branch({
-  from, to, depth, isDark,
-}: { from: THREE.Vector3; to: THREE.Vector3; depth: number; isDark: boolean }) {
-  const geo = useMemo(() => {
-    // Mid-point bows outward from tree centre and slightly up
-    const mid = from.clone().lerp(to, 0.5)
-    const outward = new THREE.Vector3(mid.x, 0, mid.z)
-    if (outward.length() > 0.001) mid.addScaledVector(outward.normalize(), 0.25)
-    mid.y -= from.distanceTo(to) * 0.08  // slight downward sag — olive branches bow under fruit weight
-    const curve = new THREE.QuadraticBezierCurve3(from.clone(), mid, to.clone())
-    // Exponential taper — main boughs are thick, twigs are fine
-    const r = Math.max(0.022, 0.82 * Math.pow(0.72, depth))
-    return new THREE.TubeGeometry(curve, 12, r, 7, false)
-  }, [from, to, depth])
-
-  useEffect(() => () => geo.dispose(), [geo])
-
-  // Bark color lightens with depth (younger wood is lighter)
-  const col = depth === 0 ? '#1e1108'
-    : depth <= 1 ? '#2c1a0a'
-    : depth <= 2 ? '#3a2210'
-    : depth <= 3 ? '#4a2c14'
-    : '#5c3618'
-
-  return (
-    <mesh geometry={geo}>
-      <meshStandardMaterial color={isDark ? col : col} roughness={0.95} metalness={0.03} />
-    </mesh>
-  )
-})
+// OliveTrunk and Branch removed — the Blender GLB provides trunk, boughs, and roots
 
 // ── Dense leaf cluster at branch endpoints ────────────────────────────────
 function LeafClusters({ nodes, isDark }: { nodes: LayoutNode[]; isDark: boolean }) {
@@ -792,9 +754,26 @@ interface SceneProps {
 
 function Scene({ people, selectedPersonId, onSelectPerson, isDark, actionsRef }: SceneProps) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const orbitRef = useRef<any>(null!)
+  const orbitRef   = useRef<any>(null!)
   const { nodes, nodeMap, maxDepth } = useMemo(() => computeLayout(people), [people])
+  const nodeMapRef = useRef(nodeMap)
+  useEffect(() => { nodeMapRef.current = nodeMap }, [nodeMap])
   const treeHeight = TRUNK_TOP_Y
+
+  // Smooth camera zoom-to target
+  const zoomTarget = useRef<THREE.Vector3 | null>(null)
+  useFrame(() => {
+    if (!zoomTarget.current || !orbitRef.current) return
+    const c = orbitRef.current
+    c.target.lerp(zoomTarget.current, 0.09)
+    // Keep camera at a comfortable distance from the target
+    const dir = c.object.position.clone().sub(c.target).normalize()
+    const desiredPos = zoomTarget.current.clone().addScaledVector(dir, 14)
+    c.object.position.lerp(desiredPos, 0.07)
+    c.update()
+    // Stop once close enough
+    if (c.target.distanceTo(zoomTarget.current) < 0.08) zoomTarget.current = null
+  })
 
   useEffect(() => {
     actionsRef.current = {
@@ -809,6 +788,11 @@ function Scene({ people, selectedPersonId, onSelectPerson, isDark, actionsRef }:
         c.update()
       },
       fitView() { orbitRef.current?.reset() },
+      zoomToId(id: string) {
+        const node = nodeMapRef.current.get(id)
+        if (!node) return
+        zoomTarget.current = node.position.clone()
+      },
     }
   })
 
