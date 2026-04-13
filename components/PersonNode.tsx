@@ -39,11 +39,7 @@ function PersonNode({ data, selected }: NodeProps<PersonNodeType>) {
     ? 'rgba(148,163,184,0.3)'
     : 'var(--border-color)'
 
-  const cardBg = isPatriarch
-    ? 'var(--node-root-bg)'
-    : isSpouseIn
-    ? 'rgba(15,23,42,0.5)'
-    : 'var(--bg-card)'
+  const cardBg = isPatriarch ? 'var(--node-root-bg)' : 'var(--bg-card)'
 
   const boxShadow = selected
     ? `0 0 0 2px ${accent}, 0 0 28px ${accentGlow}`

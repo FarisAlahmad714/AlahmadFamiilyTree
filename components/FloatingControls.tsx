@@ -1,7 +1,7 @@
 'use client'
 
 import { useReactFlow } from '@xyflow/react'
-import { ZoomIn, ZoomOut, Maximize2, Map, Sun, Moon, UserPlus, LogOut, Expand, Box, Network, Search, BarChart2 } from 'lucide-react'
+import { ZoomIn, ZoomOut, Maximize2, Map, Sun, Moon, UserPlus, LogOut, Expand, Box, Network, Search, BarChart2, Leaf } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import type { Session } from '@/lib/auth'
 
@@ -17,7 +17,7 @@ interface Props {
   hasCollapsed: boolean
   language: 'en' | 'ar'
   onToggleLanguage: () => void
-  viewMode: 'graph' | 'tree3d'
+  viewMode: 'graph' | 'tree3d' | 'olive'
   onToggleView: () => void
   onZoomIn?: () => void
   onZoomOut?: () => void
@@ -114,18 +114,24 @@ export default function FloatingControls({
           <Search size={17} />
         </button>
 
-        {/* 3D / Graph toggle */}
+        {/* View cycle: graph → 3D spheres → olive tree → graph */}
         <button
           style={{
             ...btn,
-            background: viewMode === 'tree3d' ? 'var(--node-root-bg)' : 'var(--bg-card)',
-            borderColor: viewMode === 'tree3d' ? 'var(--accent)' : 'var(--border-color)',
-            color: viewMode === 'tree3d' ? 'var(--accent)' : 'var(--text-primary)',
+            background: viewMode !== 'graph' ? 'var(--node-root-bg)' : 'var(--bg-card)',
+            borderColor: viewMode !== 'graph' ? 'var(--accent)' : 'var(--border-color)',
+            color: viewMode !== 'graph' ? 'var(--accent)' : 'var(--text-primary)',
           }}
           onClick={onToggleView}
-          title={viewMode === 'tree3d' ? 'Switch to graph view' : 'Switch to 3D tree view'}
+          title={
+            viewMode === 'graph'   ? 'Switch to 3D view' :
+            viewMode === 'tree3d'  ? 'Switch to olive tree' :
+                                     'Switch to graph view'
+          }
         >
-          {viewMode === 'tree3d' ? <Network size={17} /> : <Box size={17} />}
+          {viewMode === 'graph'  ? <Box size={17} /> :
+           viewMode === 'tree3d' ? <Leaf size={17} /> :
+                                   <Network size={17} />}
         </button>
 
         {divider}

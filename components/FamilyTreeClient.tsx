@@ -24,6 +24,7 @@ import FloatingControls from './FloatingControls'
 import PersonDetailPanel from './PersonDetailPanel'
 import AddMemberModal from './AddMemberModal'
 import TreeView3D, { type TreeView3DHandle } from './TreeView3D'
+import OliveTreeView from './OliveTreeView'
 import SearchBar from './SearchBar'
 import StatsPanel from './StatsPanel'
 
@@ -222,8 +223,9 @@ function FamilyTreeInner({ initialData, session }: Props) {
   const [showAddModal, setShowAddModal] = useState(false)
   const [showMinimap, setShowMinimap] = useState(true)
   const [collapsedNodes, setCollapsedNodes] = useState<Set<string>>(new Set())
-  const [viewMode, setViewMode] = useState<'graph' | 'tree3d'>('graph')
+  const [viewMode, setViewMode] = useState<'graph' | 'tree3d' | 'olive'>('graph')
   const tree3dRef = useRef<TreeView3DHandle>(null)
+  const oliveRef  = useRef<TreeView3DHandle>(null)
 
   // Stable toggle function — safe to use as useEffect dep
   const handleToggleCollapse = useCallback((id: string) => {
@@ -358,7 +360,8 @@ function FamilyTreeInner({ initialData, session }: Props) {
           {showMinimap && (
             <MiniMap
               nodeColor={(n) => {
-                const p = (n.data as { person: Person }).person
+                const p = (n.data as { person?: Person }).person
+                if (!p) return 'transparent'
                 if (p.id === 'abubakr') return isDark ? '#6366f1' : '#b45309'
                 if (p.gender === 'female') return isDark ? 'rgba(236,72,153,0.7)' : 'rgba(190,70,120,0.7)'
                 return isDark ? 'rgba(99,102,241,0.55)' : 'rgba(180,120,40,0.55)'
@@ -369,9 +372,17 @@ function FamilyTreeInner({ initialData, session }: Props) {
             />
           )}
         </ReactFlow>
-      ) : (
+      ) : viewMode === 'tree3d' ? (
         <TreeView3D
           ref={tree3dRef}
+          people={familyData.people}
+          selectedPersonId={selectedPerson?.id ?? null}
+          onSelectPerson={(p) => setSelectedPerson(p)}
+          isDark={isDark}
+        />
+      ) : (
+        <OliveTreeView
+          ref={oliveRef}
           people={familyData.people}
           selectedPersonId={selectedPerson?.id ?? null}
           onSelectPerson={(p) => setSelectedPerson(p)}
@@ -431,10 +442,10 @@ function FamilyTreeInner({ initialData, session }: Props) {
         language={language}
         onToggleLanguage={() => setLanguage(l => l === 'en' ? 'ar' : 'en')}
         viewMode={viewMode}
-        onToggleView={() => setViewMode(m => m === 'graph' ? 'tree3d' : 'graph')}
-        onZoomIn={viewMode === 'tree3d' ? () => tree3dRef.current?.zoomIn() : undefined}
-        onZoomOut={viewMode === 'tree3d' ? () => tree3dRef.current?.zoomOut() : undefined}
-        onFitView={viewMode === 'tree3d' ? () => tree3dRef.current?.fitView() : undefined}
+        onToggleView={() => setViewMode(m => m === 'graph' ? 'tree3d' : m === 'tree3d' ? 'olive' : 'graph')}
+        onZoomIn={viewMode === 'tree3d' ? () => tree3dRef.current?.zoomIn() : viewMode === 'olive' ? () => oliveRef.current?.zoomIn() : undefined}
+        onZoomOut={viewMode === 'tree3d' ? () => tree3dRef.current?.zoomOut() : viewMode === 'olive' ? () => oliveRef.current?.zoomOut() : undefined}
+        onFitView={viewMode === 'tree3d' ? () => tree3dRef.current?.fitView() : viewMode === 'olive' ? () => oliveRef.current?.fitView() : undefined}
         showSearch={showSearch}
         onToggleSearch={() => setShowSearch((s) => !s)}
         showStats={showStats}

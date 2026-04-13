@@ -271,9 +271,10 @@ interface SphereProps {
   position: THREE.Vector3
   isSelected: boolean
   onSelect: (p: Person) => void
+  isDark: boolean
 }
 
-function PersonSphere({ person, position, isSelected, onSelect }: SphereProps) {
+function PersonSphere({ person, position, isSelected, onSelect, isDark }: SphereProps) {
   const meshRef  = useRef<THREE.Mesh>(null!)
   const haloRef  = useRef<THREE.Mesh>(null!)
   const [hovered, setHovered] = useState(false)
@@ -286,7 +287,9 @@ function PersonSphere({ person, position, isSelected, onSelect }: SphereProps) {
 
   const baseColor    = isPatriarch ? '#f59e0b' : isFemale ? '#ec4899' : '#818cf8'
   const emissiveCol  = isPatriarch ? '#d97706' : isFemale ? '#db2777' : '#6366f1'
-  const labelColor   = isPatriarch ? '#fde68a' : isFemale ? '#fbcfe8' : '#c7d2fe'
+  const labelColor   = isDark
+    ? (isPatriarch ? '#fde68a' : isFemale ? '#fbcfe8' : '#c7d2fe')
+    : (isPatriarch ? '#92400e' : isFemale ? '#9d174d' : '#312e81')
 
   const seed = useMemo(
     () => (person.id.charCodeAt(0) + (person.id.charCodeAt(1) || 0)) % 100 * 0.063,
@@ -368,7 +371,7 @@ function PersonSphere({ person, position, isSelected, onSelect }: SphereProps) {
 function SceneFog({ isDark }: { isDark: boolean }) {
   const { scene } = useThree()
   useEffect(() => {
-    scene.fog = new THREE.FogExp2(isDark ? '#020817' : '#eef2ff', 0.009)
+    scene.fog = new THREE.FogExp2(isDark ? '#020817' : '#fdf8f0', 0.009)
     return () => { scene.fog = null }
   }, [scene, isDark])
   return null
@@ -485,8 +488,9 @@ function Scene({
       <pointLight position={[0, 1, 5]} intensity={isDark ? 0.7 : 0.35} color="#6366f1" />
 
       {/* ── Environment ── */}
-      <StarField treeWidth={treeWidth} treeHeight={treeHeight} />
-      <AmbientDust treeWidth={treeWidth} treeHeight={treeHeight} />
+      <color attach="background" args={[isDark ? '#020817' : '#fdf8f0']} />
+      {isDark && <StarField treeWidth={treeWidth} treeHeight={treeHeight} />}
+      {isDark && <AmbientDust treeWidth={treeWidth} treeHeight={treeHeight} />}
 
       {/* ── Patriarch pillar of light ── */}
       {patriarchPos && <PatriarchPillar position={patriarchPos} treeHeight={treeHeight} />}
@@ -513,6 +517,7 @@ function Scene({
             position={pos}
             isSelected={selectedPersonId === p.id}
             onSelect={onSelectPerson}
+            isDark={isDark}
           />
         )
       })}
@@ -534,7 +539,7 @@ function Scene({
       <CameraController orbitRef={orbitRef} />
 
       {/* ── Post-processing ── */}
-      <EffectComposer>
+      <EffectComposer multisampling={0} enableNormalPass={false}>
         <Bloom
           luminanceThreshold={0.15}
           luminanceSmoothing={0.92}
