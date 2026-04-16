@@ -1323,7 +1323,7 @@
       "surname": "Alahmad",
       "gender": "male",
       "parentId": "ahmad-ibn-zaki",
-      "spouseIds": [],
+      "spouseIds": ["dianna-jarrar"],
       "birthYear": null,
       "deathYear": null,
       "location": null,
@@ -1443,6 +1443,20 @@
       "deathYear": null,
       "location": null,
       "notes": null,
+      "photos": []
+    },
+    {
+      "id": "dianna-jarrar",
+      "firstName": "Dianna",
+      "firstNameAr": "ديانا",
+      "surname": "Jarrar",
+      "gender": "female",
+      "parentId": null,
+      "spouseIds": ["omar"],
+      "birthYear": null,
+      "deathYear": null,
+      "location": null,
+      "notes": "Wife of Omar Alahmad",
       "photos": []
     }
   ]

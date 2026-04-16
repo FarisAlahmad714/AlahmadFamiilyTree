@@ -101,7 +101,8 @@ function computeGenerationDepths(people: Person[]): Map<string, number> {
 function getLayoutedElements(
   people: Person[],
   collapsedIds: Set<string>,
-  onToggleCollapse: (id: string) => void
+  onToggleCollapse: (id: string) => void,
+  onSelectPerson: (person: Person) => void
 ): { nodes: TreeNode[]; edges: Edge[] } {
   // 1. Compute which nodes are hidden (descendants of collapsed nodes)
   const hiddenIds = new Set<string>()
@@ -109,7 +110,19 @@ function getLayoutedElements(
     getDescendants(people, cid).forEach((id) => hiddenIds.add(id))
   }
 
-  const visible = people.filter((p) => !hiddenIds.has(p.id))
+  // "Badge spouses" are married-in people (no parentId) referenced in someone
+  // else's spouseIds. They are rendered as heart badges on the partner's card
+  // rather than as standalone graph nodes.
+  const peopleLookup = new Map(people.map((p) => [p.id, p]))
+  const badgeSpouseIds = new Set<string>()
+  for (const p of people) {
+    for (const sid of p.spouseIds) {
+      const s = peopleLookup.get(sid)
+      if (s && !s.parentId) badgeSpouseIds.add(sid)
+    }
+  }
+
+  const visible = people.filter((p) => !hiddenIds.has(p.id) && !badgeSpouseIds.has(p.id))
   const childCounts = getChildCounts(people) // use ALL people for accurate counts
 
   // 2. Build dagre graph from visible nodes
@@ -154,10 +167,14 @@ function getLayoutedElements(
       position: { x: pos.x - W / 2, y: pos.y - H / 2 },
       data: {
         person: p,
+        spouses: p.spouseIds
+          .map((sid) => peopleLookup.get(sid))
+          .filter((s): s is Person => !!s && badgeSpouseIds.has(s.id)),
         hasChildren: (childCounts.get(p.id) ?? 0) > 0,
         totalChildren: childCounts.get(p.id) ?? 0,
         isCollapsed: collapsedIds.has(p.id),
         onToggleCollapse,
+        onSelectPerson,
       },
     }
   })
@@ -172,25 +189,6 @@ function getLayoutedElements(
       type: 'smoothstep',
       style: { stroke: 'var(--edge-color)', strokeWidth: 2 },
     }))
-
-  // Spouse edges (dashed pink)
-  const spouseEdges: Edge[] = []
-  const seenPairs = new Set<string>()
-  for (const p of visible) {
-    for (const sid of p.spouseIds) {
-      const key = [p.id, sid].sort().join('~~')
-      if (seenPairs.has(key)) continue
-      if (!visible.find((v) => v.id === sid)) continue
-      seenPairs.add(key)
-      spouseEdges.push({
-        id: `spouse~~${key}`,
-        source: p.id,
-        target: sid,
-        type: 'straight',
-        style: { stroke: 'rgba(236,72,153,0.5)', strokeWidth: 1.5, strokeDasharray: '5,4' },
-      })
-    }
-  }
 
   // Generation label nodes
   const genNodes: GenLabelNodeType[] = []
@@ -207,7 +205,7 @@ function getLayoutedElements(
     })
   }
 
-  return { nodes: [...nodes, ...genNodes] as TreeNode[], edges: [...edges, ...spouseEdges] }
+  return { nodes: [...nodes, ...genNodes] as TreeNode[], edges }
 }
 
 interface Props {
@@ -240,8 +238,8 @@ function FamilyTreeInner({ initialData, session }: Props) {
   const [showSearch, setShowSearch] = useState(false)
   const [showStats, setShowStats] = useState(false)
 
-  // Seed initial state
-  const seed = getLayoutedElements(initialData.people, new Set(), handleToggleCollapse)
+  // Seed initial state (onSelectPerson wired up in useEffect; no-op here is fine for layout-only seed)
+  const seed = getLayoutedElements(initialData.people, new Set(), handleToggleCollapse, () => {})
   const [nodes, setNodes, onNodesChange] = useNodesState<TreeNode>(seed.nodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(seed.edges)
 
@@ -250,11 +248,12 @@ function FamilyTreeInner({ initialData, session }: Props) {
     const { nodes: n, edges: e } = getLayoutedElements(
       familyData.people,
       collapsedNodes,
-      handleToggleCollapse
+      handleToggleCollapse,
+      setSelectedPerson
     )
     setNodes(n)
     setEdges(e)
-  }, [familyData, collapsedNodes, handleToggleCollapse, setNodes, setEdges])
+  }, [familyData, collapsedNodes, handleToggleCollapse, setSelectedPerson, setNodes, setEdges])
 
   // Deep link: restore selected person from URL on mount
   useEffect(() => {
@@ -579,6 +578,28 @@ function FamilyTreeInner({ initialData, session }: Props) {
           />
         )}
       </AnimatePresence>
+
+      {/* ── Creator credit ── */}
+      <div style={{
+        position: 'fixed',
+        bottom: '18px',
+        right: '18px',
+        zIndex: 50,
+        padding: '6px 12px',
+        borderRadius: '8px',
+        background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+        border: `1px solid ${isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.10)'}`,
+        backdropFilter: 'blur(6px)',
+        pointerEvents: 'none',
+        userSelect: 'none',
+        fontSize: '12px',
+        fontWeight: 600,
+        letterSpacing: '0.03em',
+        color: isDark ? 'rgba(220,235,200,0.85)' : 'rgba(25,45,10,0.75)',
+        whiteSpace: 'nowrap',
+      }}>
+        Architected by <em>Faris Alahmad</em>
+      </div>
     </div>
     </LanguageContext.Provider>
   )

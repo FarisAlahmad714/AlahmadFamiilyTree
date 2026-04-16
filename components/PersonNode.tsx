@@ -8,16 +8,47 @@ import { useLanguage } from '@/lib/language-context'
 export type PersonNodeType = Node<
   {
     person: Person
+    spouses: Person[]
     hasChildren: boolean
     totalChildren: number
     isCollapsed: boolean
     onToggleCollapse: (id: string) => void
+    onSelectPerson: (person: Person) => void
   },
   'person'
 >
 
+function SpouseHeartBadge({ spouse, onSelect }: { spouse: Person; onSelect: (p: Person) => void }) {
+  const initial = spouse.firstName.charAt(0).toUpperCase()
+  const label   = `${spouse.firstName}${spouse.surname ? ' ' + spouse.surname : ''}`
+  return (
+    <div
+      title={label}
+      onClick={(e) => { e.stopPropagation(); onSelect(spouse) }}
+      style={{ width: 30, height: 30, flexShrink: 0, cursor: 'pointer' }}
+    >
+      <svg viewBox="0 0 32 30" width={30} height={30} style={{ filter: 'drop-shadow(0 2px 5px rgba(0,0,0,0.35))' }}>
+        <path
+          d="M16 27C16 27 2 18.5 2 10.5C2 6.358 5.358 3 9.5 3C11.824 3 13.9 4.05 15.3 5.73C15.68 6.19 16.32 6.19 16.7 5.73C18.1 4.05 20.176 3 22.5 3C26.642 3 30 6.358 30 10.5C30 18.5 16 27 16 27Z"
+          fill="#e63946"
+        />
+        <text
+          x="15.5"
+          y="15.5"
+          textAnchor="middle"
+          dominantBaseline="central"
+          fill="white"
+          fontSize="10"
+          fontWeight="800"
+          fontFamily="sans-serif"
+        >{initial}</text>
+      </svg>
+    </div>
+  )
+}
+
 function PersonNode({ data, selected }: NodeProps<PersonNodeType>) {
-  const { person, hasChildren, totalChildren, isCollapsed, onToggleCollapse } = data
+  const { person, spouses, hasChildren, totalChildren, isCollapsed, onToggleCollapse, onSelectPerson } = data
   const language = useLanguage()
   const displayName = language === 'ar' && person.firstNameAr ? person.firstNameAr : person.firstName
   const isRoot = !person.parentId && !person.spouseIds.some(() => true)
@@ -54,6 +85,21 @@ function PersonNode({ data, selected }: NodeProps<PersonNodeType>) {
         position={Position.Top}
         style={{ background: accent, border: 'none', width: 7, height: 7 }}
       />
+
+      {/* Spouse heart badges — sit outside the overflow:hidden card */}
+      {spouses && spouses.length > 0 && (
+        <div style={{
+          position: 'absolute',
+          top: -14,
+          right: -10,
+          display: 'flex',
+          flexDirection: 'row-reverse',
+          gap: 3,
+          zIndex: 10,
+        }}>
+          {spouses.map(s => <SpouseHeartBadge key={s.id} spouse={s} onSelect={onSelectPerson} />)}
+        </div>
+      )}
 
       <div
         style={{
