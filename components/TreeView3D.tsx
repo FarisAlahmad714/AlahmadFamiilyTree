@@ -285,11 +285,9 @@ function PersonSphere({ person, position, isSelected, onSelect, isDark }: Sphere
   const displayName = language === 'ar' && person.firstNameAr ? person.firstNameAr : person.firstName
   const radius      = isPatriarch ? 0.56 : 0.28
 
-  const baseColor    = isPatriarch ? '#f59e0b' : isFemale ? '#ec4899' : '#818cf8'
-  const emissiveCol  = isPatriarch ? '#d97706' : isFemale ? '#db2777' : '#6366f1'
-  const labelColor   = isDark
-    ? (isPatriarch ? '#fde68a' : isFemale ? '#fbcfe8' : '#c7d2fe')
-    : (isPatriarch ? '#92400e' : isFemale ? '#9d174d' : '#312e81')
+  const baseColor   = isPatriarch ? '#f59e0b' : isFemale ? '#ec4899' : (isDark ? '#818cf8' : '#6366f1')
+  const emissiveCol = isPatriarch ? '#d97706' : isFemale ? '#db2777' : (isDark ? '#6366f1' : '#4f46e5')
+  const labelColor  = isPatriarch ? '#fde68a' : isFemale ? '#fbcfe8' : '#e0e7ff'
 
   const seed = useMemo(
     () => (person.id.charCodeAt(0) + (person.id.charCodeAt(1) || 0)) % 100 * 0.063,
@@ -349,15 +347,17 @@ function PersonSphere({ person, position, isSelected, onSelect, isDark }: Sphere
         />
       </mesh>
 
-      {/* Name label */}
+      {/* Name label — z=0.5 clears branch tubes and halo rings which sit at z=0 */}
       <Text
-        position={[0, radius + 0.24, 0]}
+        position={[0, radius + 0.24, 0.5]}
         fontSize={isPatriarch ? 0.23 : 0.14}
         color={labelColor}
         anchorX="center"
         anchorY="bottom"
-        renderOrder={100}
-        depthOffset={-10}
+        renderOrder={200}
+        outlineWidth={0.018}
+        outlineColor="#020817"
+        outlineOpacity={0.7}
       >
         {displayName}
       </Text>
@@ -371,7 +371,7 @@ function PersonSphere({ person, position, isSelected, onSelect, isDark }: Sphere
 function SceneFog({ isDark }: { isDark: boolean }) {
   const { scene } = useThree()
   useEffect(() => {
-    scene.fog = new THREE.FogExp2(isDark ? '#020817' : '#fdf8f0', 0.009)
+    scene.fog = new THREE.FogExp2(isDark ? '#020817' : '#0d1b3e', 0.009)
     return () => { scene.fog = null }
   }, [scene, isDark])
   return null
@@ -477,20 +477,20 @@ function Scene({
       <SceneFog isDark={isDark} />
 
       {/* ── Dramatic lighting ── */}
-      <ambientLight intensity={isDark ? 0.22 : 0.65} />
+      <ambientLight intensity={isDark ? 0.22 : 0.45} />
       {/* Top fill */}
-      <pointLight position={[0, treeHeight + 6, 12]} intensity={isDark ? 1.4 : 0.8} color={isDark ? '#818cf8' : '#6366f1'} />
+      <pointLight position={[0, treeHeight + 6, 12]} intensity={isDark ? 1.4 : 1.8} color="#818cf8" />
       {/* Left rim — warm pink */}
-      <pointLight position={[-treeWidth * 0.55, treeHeight * 0.5, 6]} intensity={0.55} color="#ec4899" />
+      <pointLight position={[-treeWidth * 0.55, treeHeight * 0.5, 6]} intensity={0.65} color="#ec4899" />
       {/* Right rim — cool blue */}
-      <pointLight position={[ treeWidth * 0.55, treeHeight * 0.5, 6]} intensity={0.4}  color={isDark ? '#38bdf8' : '#f59e0b'} />
+      <pointLight position={[ treeWidth * 0.55, treeHeight * 0.5, 6]} intensity={0.55} color="#38bdf8" />
       {/* Root glow light */}
-      <pointLight position={[0, 1, 5]} intensity={isDark ? 0.7 : 0.35} color="#6366f1" />
+      <pointLight position={[0, 1, 5]} intensity={isDark ? 0.7 : 0.9} color="#6366f1" />
 
-      {/* ── Environment ── */}
-      <color attach="background" args={[isDark ? '#020817' : '#fdf8f0']} />
-      {isDark && <StarField treeWidth={treeWidth} treeHeight={treeHeight} />}
-      {isDark && <AmbientDust treeWidth={treeWidth} treeHeight={treeHeight} />}
+      {/* ── Environment — both modes use deep navy so spheres always pop ── */}
+      <color attach="background" args={[isDark ? '#020817' : '#0d1b3e']} />
+      <StarField treeWidth={treeWidth} treeHeight={treeHeight} />
+      <AmbientDust treeWidth={treeWidth} treeHeight={treeHeight} />
 
       {/* ── Patriarch pillar of light ── */}
       {patriarchPos && <PatriarchPillar position={patriarchPos} treeHeight={treeHeight} />}
@@ -543,10 +543,10 @@ function Scene({
         <Bloom
           luminanceThreshold={0.15}
           luminanceSmoothing={0.92}
-          intensity={isDark ? 2.2 : 0.7}
+          intensity={isDark ? 2.2 : 1.8}
           mipmapBlur
         />
-        <Vignette offset={0.12} darkness={isDark ? 0.75 : 0.35} />
+        <Vignette offset={0.12} darkness={isDark ? 0.75 : 0.65} />
       </EffectComposer>
     </>
   )

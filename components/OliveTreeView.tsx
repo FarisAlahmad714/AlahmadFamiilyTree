@@ -1388,6 +1388,8 @@ const OliveTreeView = forwardRef<TreeView3DHandle, Props>(function OliveTreeView
   { people, selectedPersonId, onSelectPerson, isDark }, ref,
 ) {
   const actionsRef = useRef<TreeView3DHandle>({ zoomIn: () => {}, zoomOut: () => {}, fitView: () => {} })
+  const [infoOpen, setInfoOpen] = useState(true)
+
   useImperativeHandle(ref, () => ({
     zoomIn:   () => actionsRef.current.zoomIn(),
     zoomOut:  () => actionsRef.current.zoomOut(),
@@ -1395,24 +1397,100 @@ const OliveTreeView = forwardRef<TreeView3DHandle, Props>(function OliveTreeView
     zoomToId: (id: string) => actionsRef.current.zoomToId?.(id),
   }))
 
+  const cardBg     = isDark ? 'rgba(10,18,30,0.72)' : 'rgba(8,20,12,0.78)'
+  const borderCol  = isDark ? 'rgba(120,180,90,0.22)' : 'rgba(120,180,90,0.30)'
+  const textPrimary   = '#d4e8b0'
+  const textSecondary = 'rgba(180,220,140,0.65)'
+
   return (
-    <Canvas
-      camera={{ position: [14, 5, 34], fov: 58 }}
-      style={{ width: '100%', height: '100%' }}
-      gl={{ antialias: true, powerPreference: 'high-performance' }}
-      dpr={[1, 2]}
-      shadows
-    >
-      <Suspense fallback={null}>
-        <Scene
-          people={people}
-          selectedPersonId={selectedPersonId}
-          onSelectPerson={onSelectPerson}
-          isDark={isDark}
-          actionsRef={actionsRef}
-        />
-      </Suspense>
-    </Canvas>
+    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+      <Canvas
+        camera={{ position: [14, 5, 34], fov: 58 }}
+        style={{ width: '100%', height: '100%' }}
+        gl={{ antialias: true, powerPreference: 'high-performance' }}
+        dpr={[1, 2]}
+        shadows
+      >
+        <Suspense fallback={null}>
+          <Scene
+            people={people}
+            selectedPersonId={selectedPersonId}
+            onSelectPerson={onSelectPerson}
+            isDark={isDark}
+            actionsRef={actionsRef}
+          />
+        </Suspense>
+      </Canvas>
+
+      {/* ── Infographic overlay ── */}
+      <div style={{
+        position: 'absolute',
+        bottom: 28,
+        left: 20,
+        zIndex: 20,
+        maxWidth: 'min(300px, calc(100vw - 40px)',
+        fontFamily: 'system-ui, sans-serif',
+      }}>
+        {/* Header row: always visible */}
+        <button
+          onClick={() => setInfoOpen(o => !o)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            background: cardBg,
+            border: `1px solid ${borderCol}`,
+            backdropFilter: 'blur(14px)',
+            WebkitBackdropFilter: 'blur(14px)',
+            borderRadius: infoOpen ? '12px 12px 0 0' : '12px',
+            padding: '8px 14px',
+            cursor: 'pointer',
+            width: '100%',
+            textAlign: 'left',
+          }}
+        >
+          <span style={{ fontSize: 18 }}>🫒</span>
+          <span style={{ flex: 1, fontSize: 13, fontWeight: 700, color: textPrimary, letterSpacing: '0.03em' }}>
+            The Alahmad Olive Tree
+          </span>
+          <span style={{ fontSize: 11, color: textSecondary, transition: 'transform 0.2s', transform: infoOpen ? 'rotate(180deg)' : 'none' }}>
+            ▲
+          </span>
+        </button>
+
+        {/* Expandable body */}
+        {infoOpen && (
+          <div style={{
+            background: cardBg,
+            border: `1px solid ${borderCol}`,
+            borderTop: 'none',
+            backdropFilter: 'blur(14px)',
+            WebkitBackdropFilter: 'blur(14px)',
+            borderRadius: '0 0 12px 12px',
+            padding: '12px 14px 14px',
+          }}>
+            <p style={{ margin: '0 0 10px', fontSize: 12.5, lineHeight: 1.65, color: textPrimary }}>
+              In the hills of Jenin, olive trees have stood for a thousand years, rooted deeper than memory, older than borders. The Alahmad tree is built in their image.
+            </p>
+            <p style={{ margin: '0 0 10px', fontSize: 12.5, lineHeight: 1.65, color: textPrimary }}>
+              Each olive is a soul. Each branch, a lineage. As the family grows, so does the tree, stretching outward, holding firm. It bends in the wind, but it never breaks.
+            </p>
+            <p style={{ margin: '0 0 12px', fontSize: 12.5, lineHeight: 1.65, color: textPrimary, fontStyle: 'italic' }}>
+              This is not just a family tree. It is a living archive.
+            </p>
+            <div style={{
+              borderTop: `1px solid ${borderCol}`,
+              paddingTop: 10,
+              fontSize: 11,
+              color: textSecondary,
+              letterSpacing: '0.04em',
+            }}>
+              🫒 {people.length} members &nbsp;·&nbsp; 7 generations &nbsp;·&nbsp; Rooted in AbuBakr
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   )
 })
 
