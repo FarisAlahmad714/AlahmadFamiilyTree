@@ -598,7 +598,7 @@ function FamilyTreeInner({ initialData, session }: Props) {
         color: isDark ? 'rgba(220,235,200,0.85)' : 'rgba(25,45,10,0.75)',
         whiteSpace: 'nowrap',
       }}>
-        Architected by <em>Faris Alahmad</em>
+        Engineered by <em>Faris Alahmad</em>
       </div>
     </div>
     </LanguageContext.Provider>

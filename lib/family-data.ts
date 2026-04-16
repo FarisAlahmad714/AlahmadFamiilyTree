@@ -9,9 +9,11 @@ export interface Person {
   surname: string
   gender: 'male' | 'female' | 'other'
   parentId: string | null
+  motherId?: string | null
   spouseIds: string[]
   birthYear: number | null
   deathYear: number | null
+  deceased?: boolean
   location: string | null
   photos: string[]
   notes: string | null

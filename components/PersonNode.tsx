@@ -87,7 +87,7 @@ function PersonNode({ data, selected }: NodeProps<PersonNodeType>) {
       />
 
       {/* Spouse heart badges — sit outside the overflow:hidden card */}
-      {spouses && spouses.length > 0 && (
+      {(spouses && spouses.length > 0 || hasChildren) && (
         <div style={{
           position: 'absolute',
           top: -14,
@@ -97,7 +97,21 @@ function PersonNode({ data, selected }: NodeProps<PersonNodeType>) {
           gap: 3,
           zIndex: 10,
         }}>
-          {spouses.map(s => <SpouseHeartBadge key={s.id} spouse={s} onSelect={onSelectPerson} />)}
+          {spouses && spouses.length > 0
+            ? spouses.map(s => <SpouseHeartBadge key={s.id} spouse={s} onSelect={onSelectPerson} />)
+            : (
+              <div style={{ width: 30, height: 30, flexShrink: 0, pointerEvents: 'none' }}>
+                <svg viewBox="0 0 32 30" width={30} height={30} style={{ filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.25))' }}>
+                  <path
+                    d="M16 27C16 27 2 18.5 2 10.5C2 6.358 5.358 3 9.5 3C11.824 3 13.9 4.05 15.3 5.73C15.68 6.19 16.32 6.19 16.7 5.73C18.1 4.05 20.176 3 22.5 3C26.642 3 30 6.358 30 10.5C30 18.5 16 27 16 27Z"
+                    fill="none"
+                    stroke="rgba(230,57,70,0.45)"
+                    strokeWidth="2"
+                  />
+                </svg>
+              </div>
+            )
+          }
         </div>
       )}
 
@@ -115,7 +129,7 @@ function PersonNode({ data, selected }: NodeProps<PersonNodeType>) {
           transition: 'box-shadow 0.18s, border-color 0.18s',
           position: 'relative',
           overflow: 'hidden',
-          opacity: person.deathYear ? 0.72 : 1,
+          opacity: (person.deathYear || person.deceased) ? 0.72 : 1,
         }}
       >
         {/* Top accent stripe */}
@@ -207,7 +221,7 @@ function PersonNode({ data, selected }: NodeProps<PersonNodeType>) {
               >
                 {displayName}
               </span>
-              {person.deathYear && (
+              {(person.deathYear || person.deceased) && (
                 <span style={{ flexShrink: 0, fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 400 }}>†</span>
               )}
               {isPatriarch && (
@@ -257,8 +271,12 @@ function PersonNode({ data, selected }: NodeProps<PersonNodeType>) {
               {person.surname ? person.surname : isSpouseIn ? 'by marriage' : ''}
               {person.birthYear && person.deathYear
                 ? ` · ${person.birthYear} – ${person.deathYear}`
+                : person.birthYear && person.deceased
+                ? ` · ${person.birthYear} – †`
                 : person.birthYear
                 ? ` · ${person.birthYear}`
+                : person.deceased && !person.birthYear
+                ? ' · deceased'
                 : ''}
             </div>
 

@@ -78,12 +78,30 @@
       "gender": "male",
       "parentId": "mustafa",
       "spouseIds": [
+        "alya-aboushi",
         "sakeeneh"
       ],
       "birthYear": null,
       "deathYear": null,
       "location": null,
       "notes": null,
+      "photos": []
+    },
+    {
+      "id": "alya-aboushi",
+      "firstName": "Alya",
+      "firstNameAr": "عليا",
+      "surname": "Aboushi",
+      "gender": "female",
+      "parentId": null,
+      "spouseIds": [
+        "zaki"
+      ],
+      "birthYear": null,
+      "deathYear": null,
+      "deceased": true,
+      "location": null,
+      "notes": "First wife of Zaki Alahmad — mother of Farooq, Nawal, Mahmoud, and Riadh",
       "photos": []
     },
     {
@@ -99,7 +117,7 @@
       "birthYear": null,
       "deathYear": null,
       "location": null,
-      "notes": "Wife of Zaki",
+      "notes": "Second wife of Zaki Alahmad — mother of Ahmad, Naser, and Shurouq",
       "photos": []
     },
     {
@@ -109,6 +127,7 @@
       "surname": "Alahmad",
       "gender": "male",
       "parentId": "zaki",
+      "motherId": "alya-aboushi",
       "spouseIds": [
         "rawia"
       ],
@@ -125,6 +144,7 @@
       "surname": "Alahmad",
       "gender": "female",
       "parentId": "zaki",
+      "motherId": "alya-aboushi",
       "spouseIds": [
         "afif"
       ],
@@ -141,6 +161,7 @@
       "surname": "Alahmad",
       "gender": "male",
       "parentId": "zaki",
+      "motherId": "alya-aboushi",
       "spouseIds": [
         "fathieh"
       ],
@@ -157,6 +178,7 @@
       "surname": "Alahmad",
       "gender": "male",
       "parentId": "zaki",
+      "motherId": "alya-aboushi",
       "spouseIds": [
         "rinati"
       ],
@@ -173,6 +195,7 @@
       "surname": "Alahmad",
       "gender": "male",
       "parentId": "zaki",
+      "motherId": "sakeeneh",
       "spouseIds": [
         "wasan"
       ],
@@ -189,6 +212,7 @@
       "surname": "Alahmad",
       "gender": "male",
       "parentId": "zaki",
+      "motherId": "sakeeneh",
       "spouseIds": [],
       "birthYear": null,
       "deathYear": null,
@@ -203,6 +227,7 @@
       "surname": "Alahmad",
       "gender": "female",
       "parentId": "zaki",
+      "motherId": "sakeeneh",
       "spouseIds": [
         "omar-shurouq"
       ],
