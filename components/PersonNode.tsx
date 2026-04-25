@@ -1,6 +1,7 @@
 'use client'
 
-import { memo } from 'react'
+import { memo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Handle, Position, type NodeProps, type Node } from '@xyflow/react'
 import type { Person } from '@/lib/family-data'
 import { useLanguage } from '@/lib/language-context'
@@ -50,6 +51,7 @@ function SpouseHeartBadge({ spouse, onSelect }: { spouse: Person; onSelect: (p: 
 function PersonNode({ data, selected }: NodeProps<PersonNodeType>) {
   const { person, spouses, hasChildren, totalChildren, isCollapsed, onToggleCollapse, onSelectPerson } = data
   const language = useLanguage()
+  const [photoModal, setPhotoModal] = useState(false)
   const displayName = language === 'ar' && person.firstNameAr ? person.firstNameAr : person.firstName
   const isRoot = !person.parentId && !person.spouseIds.some(() => true)
   // A "true root" is AbuBakr — no parent, not married in
@@ -190,7 +192,8 @@ function PersonNode({ data, selected }: NodeProps<PersonNodeType>) {
               <img
                 src={person.photos[0]}
                 alt={displayName}
-                style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                onClick={(e) => { e.stopPropagation(); setPhotoModal(true) }}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%', cursor: 'zoom-in' }}
               />
             ) : (
               displayName.charAt(0).toUpperCase()
@@ -341,6 +344,56 @@ function PersonNode({ data, selected }: NodeProps<PersonNodeType>) {
         position={Position.Bottom}
         style={{ background: accent, border: 'none', width: 7, height: 7 }}
       />
+
+      {photoModal && person.photos && person.photos.length > 0 && typeof document !== 'undefined' && createPortal(
+        <div
+          onClick={() => setPhotoModal(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            background: 'rgba(0,0,0,0.88)',
+            backdropFilter: 'blur(12px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={person.photos[0]}
+            alt={displayName}
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              maxHeight: '85vh',
+              maxWidth: '90vw',
+              borderRadius: '14px',
+              objectFit: 'contain',
+              boxShadow: '0 25px 60px rgba(0,0,0,0.6)',
+            }}
+          />
+          <button
+            onClick={() => setPhotoModal(false)}
+            style={{
+              position: 'absolute',
+              top: 20,
+              right: 24,
+              background: 'rgba(255,255,255,0.12)',
+              border: 'none',
+              borderRadius: '50%',
+              width: 40,
+              height: 40,
+              cursor: 'pointer',
+              color: '#fff',
+              fontSize: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >×</button>
+        </div>,
+        document.body
+      )}
     </>
   )
 }
