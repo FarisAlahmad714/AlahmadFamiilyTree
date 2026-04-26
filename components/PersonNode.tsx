@@ -154,8 +154,8 @@ function PersonNode({ data, selected }: NodeProps<PersonNodeType>) {
             src="/angel-wings-transparent.png"
             style={{
               position: 'absolute',
-              width: 400,
-              top: -155,
+              width: 260,
+              top: -88,
               left: '50%',
               transform: 'translateX(-50%)',
               pointerEvents: 'none',
@@ -169,8 +169,8 @@ function PersonNode({ data, selected }: NodeProps<PersonNodeType>) {
             src="/angel-halo.png"
             style={{
               position: 'absolute',
-              width: 180,
-              top: -38,
+              width: 110,
+              top: -24,
               left: '50%',
               transform: 'translateX(-50%)',
               pointerEvents: 'none',

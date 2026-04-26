@@ -19,13 +19,15 @@ for (let i = 0; i < data.length; i += 4) {
   }
 }
 
-// ── 2. Also erase the halo area from the wings image ─────────────────────────
-// Halo sits roughly at x=158..326, y=18..90 in the 484×243 source image
-// Zero out those pixels so the halo can be placed separately
-for (let y = 10; y < 95; y++) {
-  for (let x = 148; x < 336; x++) {
+// ── 2. Erase the entire center-top region (halo + sparkles) ──────────────────
+// The halo and sparkles sit in the center band of the image.
+// Erase a wide vertical strip from the center so only the wing sides remain.
+const cx = Math.floor(width / 2)
+const eraseHalfW = 130   // 260px total strip centered on image
+for (let y = 0; y < 110; y++) {
+  for (let x = cx - eraseHalfW; x < cx + eraseHalfW; x++) {
     const i = (y * width + x) * 4
-    data[i+3] = 0   // fully transparent — remove the halo region
+    data[i+3] = 0
   }
 }
 
