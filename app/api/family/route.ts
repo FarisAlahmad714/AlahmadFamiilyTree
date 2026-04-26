@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { readFamilyData, writeFamilyData, type Person } from '@/lib/family-data'
 import { getSession } from '@/lib/auth'
 import { buildNameTranslationPairs, resolveBilingualName } from '@/lib/name-translation'
+import {
+  clearFemaleLineAlahmadSurnames,
+  fillBlankInheritedSurnames,
+  getInheritedSurname,
+} from '@/lib/surname-inheritance'
 
 export async function GET() {
   const data = readFamilyData()
@@ -18,7 +23,17 @@ export async function POST(req: NextRequest) {
   const data = readFamilyData()
   const namePairs = buildNameTranslationPairs(data.people)
   const firstName = resolveBilingualName(person.firstName, person.firstNameAr, '', '', namePairs)
-  const surname = resolveBilingualName(person.surname, person.surnameAr, 'Alahmad', 'الأحمد', namePairs)
+  const inheritedSurname = getInheritedSurname({ ...person, id: 'new-member' }, data.people)
+  const surnameFallback = inheritedSurname ?? (
+    person.parentId ? { surname: null, surnameAr: null } : { surname: 'Alahmad', surnameAr: 'الأحمد' }
+  )
+  const surname = resolveBilingualName(
+    person.surname,
+    person.surnameAr,
+    surnameFallback.surname,
+    surnameFallback.surnameAr,
+    namePairs,
+  )
 
   const idBase = (firstName.english || firstName.arabic || 'member').toLowerCase().replace(/\s+/g, '-')
   const id = `${idBase}-${Date.now()}`
@@ -32,6 +47,8 @@ export async function POST(req: NextRequest) {
   }
 
   data.people.push(newPerson)
+  clearFemaleLineAlahmadSurnames(data.people, [newPerson.id])
+  fillBlankInheritedSurnames(data.people, [newPerson.id])
   writeFamilyData(data)
 
   return NextResponse.json(newPerson, { status: 201 })

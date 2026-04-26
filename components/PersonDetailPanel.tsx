@@ -7,6 +7,7 @@ import type { Person, PersonUpdatePayload } from '@/lib/family-data'
 import type { Session } from '@/lib/auth'
 import { useLanguage } from '@/lib/language-context'
 import { buildNameTranslationPairs, resolveBilingualName } from '@/lib/name-translation'
+import { getInheritedSurname } from '@/lib/surname-inheritance'
 
 interface Props {
   person: Person
@@ -105,6 +106,17 @@ export default function PersonDetailPanel({
   const relationCandidates = allPeople.filter((p) => p.id !== person.id)
   const parentCandidates = relationCandidates.filter((p) => !descendantIds.has(p.id))
   const childCandidates = relationCandidates.filter((p) => !ancestorIds.has(p.id))
+  const surnameForRelations = (parentId: string | null, motherId: string | null) =>
+    getInheritedSurname(
+      {
+        id: person.id,
+        parentId,
+        motherId,
+        surname: null,
+        surnameAr: null,
+      },
+      allPeople,
+    ) ?? { surname: null, surnameAr: null }
 
   const translatedFirstName = resolveBilingualName(
     person.firstName,
@@ -589,7 +601,23 @@ export default function PersonDetailPanel({
                       <label style={labelStyle}>Parent</label>
                       <select
                         value={form.parentId ?? ''}
-                        onChange={(e) => setForm((f) => ({ ...f, parentId: e.target.value || null }))}
+                        onChange={(e) => {
+                          const parentId = e.target.value || null
+                          setForm((f) => {
+                            const inheritedSurname = surnameForRelations(parentId, f.motherId ?? null)
+                            const canReplaceSurname = !f.surname?.trim() || f.surname === 'Alahmad'
+                            return {
+                              ...f,
+                              parentId,
+                              ...(canReplaceSurname
+                                ? {
+                                    surname: inheritedSurname.surname ?? '',
+                                    surnameAr: inheritedSurname.surnameAr ?? '',
+                                  }
+                                : {}),
+                            }
+                          })
+                        }}
                         style={inputStyle}
                       >
                         <option value="">No parent</option>
@@ -605,7 +633,23 @@ export default function PersonDetailPanel({
                     <label style={labelStyle}>Mother</label>
                     <select
                       value={form.motherId ?? ''}
-                      onChange={(e) => setForm((f) => ({ ...f, motherId: e.target.value || null }))}
+                      onChange={(e) => {
+                        const motherId = e.target.value || null
+                        setForm((f) => {
+                          const inheritedSurname = surnameForRelations(f.parentId ?? null, motherId)
+                          const canReplaceSurname = !f.surname?.trim() || f.surname === 'Alahmad'
+                          return {
+                            ...f,
+                            motherId,
+                            ...(canReplaceSurname
+                              ? {
+                                  surname: inheritedSurname.surname ?? '',
+                                  surnameAr: inheritedSurname.surnameAr ?? '',
+                                }
+                              : {}),
+                          }
+                        })
+                      }}
                       style={inputStyle}
                     >
                       <option value="">No mother set</option>

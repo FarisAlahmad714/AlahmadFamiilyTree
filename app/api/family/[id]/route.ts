@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { readFamilyData, writeFamilyData, type PersonUpdatePayload } from '@/lib/family-data'
 import { getSession } from '@/lib/auth'
 import { buildNameTranslationPairs, resolveBilingualName } from '@/lib/name-translation'
+import {
+  clearFemaleLineAlahmadSurnames,
+  fillBlankInheritedSurnames,
+  getInheritedSurname,
+} from '@/lib/surname-inheritance'
 
 function uniqueExistingIds(ids: unknown, validIds: Set<string>, ownId: string): string[] {
   if (!Array.isArray(ids)) return []
@@ -30,21 +35,32 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     current.firstNameAr,
     namePairs,
   )
-  const surname = resolveBilingualName(
-    updates.surname,
-    updates.surnameAr,
-    current.surname,
-    current.surnameAr,
-    namePairs,
-  )
   const hasParentId = Object.prototype.hasOwnProperty.call(updates, 'parentId')
   const hasMotherId = Object.prototype.hasOwnProperty.call(updates, 'motherId')
   const hasSpouseIds = Object.prototype.hasOwnProperty.call(updates, 'spouseIds')
+  const hasSurnameUpdate =
+    Object.prototype.hasOwnProperty.call(updates, 'surname') ||
+    Object.prototype.hasOwnProperty.call(updates, 'surnameAr') ||
+    hasParentId ||
+    hasMotherId
   const nextParentId =
     hasParentId ? (updates.parentId && updates.parentId !== id && validIds.has(updates.parentId) ? updates.parentId : null) : current.parentId
   const nextMotherId =
     hasMotherId ? (updates.motherId && updates.motherId !== id && validIds.has(updates.motherId) ? updates.motherId : null) : current.motherId
   const nextSpouseIds = hasSpouseIds ? uniqueExistingIds(updates.spouseIds, validIds, id) : current.spouseIds
+  const inheritedSurname = getInheritedSurname(
+    { ...current, ...updates, id, parentId: nextParentId, motherId: nextMotherId },
+    data.people,
+  )
+  const surname = hasSurnameUpdate
+    ? resolveBilingualName(
+        updates.surname,
+        updates.surnameAr,
+        inheritedSurname?.surname,
+        inheritedSurname?.surnameAr,
+        namePairs,
+      )
+    : { english: current.surname ?? '', arabic: current.surnameAr ?? '' }
 
   data.people[idx] = {
     ...current,
@@ -82,6 +98,17 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       }
     }
   }
+
+  const relatedSurnameIds = new Set<string>([id])
+  for (const person of data.people) {
+    if (person.parentId === id || person.motherId === id) relatedSurnameIds.add(person.id)
+    if (data.people[idx].parentId && person.parentId === data.people[idx].parentId) relatedSurnameIds.add(person.id)
+    for (const spouseId of data.people[idx].spouseIds ?? []) {
+      if (person.parentId === spouseId || person.motherId === spouseId) relatedSurnameIds.add(person.id)
+    }
+  }
+  clearFemaleLineAlahmadSurnames(data.people, relatedSurnameIds)
+  fillBlankInheritedSurnames(data.people, relatedSurnameIds)
 
   writeFamilyData(data)
 

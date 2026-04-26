@@ -295,9 +295,9 @@
     },
     {
       "id": "nadia-husband",
-      "firstName": "Unknown",
-      "firstNameAr": "غير معروف",
-      "surname": "",
+      "firstName": "Mohammad",
+      "firstNameAr": "محمد",
+      "surname": null,
       "gender": "male",
       "parentId": null,
       "spouseIds": [
@@ -307,14 +307,14 @@
       "deathYear": null,
       "deceased": true,
       "location": null,
-      "notes": "Nadia's deceased husband — name unknown",
+      "notes": "Husband of Nadia",
       "photos": []
     },
     {
       "id": "firas-najib",
       "firstName": "Firas",
       "firstNameAr": "فراس",
-      "surname": "Alahmad",
+      "surname": null,
       "gender": "male",
       "parentId": "nadia-najib",
       "spouseIds": [],
@@ -329,7 +329,7 @@
       "id": "saad-najib",
       "firstName": "Saad",
       "firstNameAr": "سعد",
-      "surname": "Alahmad",
+      "surname": null,
       "gender": "male",
       "parentId": "nadia-najib",
       "spouseIds": [],
@@ -1015,7 +1015,7 @@
       "id": "emad",
       "firstName": "Emad",
       "firstNameAr": "عماد",
-      "surname": "Alahmad",
+      "surname": null,
       "gender": "male",
       "parentId": "nawal",
       "spouseIds": [
@@ -1031,7 +1031,7 @@
       "id": "sanna",
       "firstName": "Sanna",
       "firstNameAr": "سنا",
-      "surname": "Alahmad",
+      "surname": null,
       "gender": "female",
       "parentId": "nawal",
       "spouseIds": [
@@ -1047,7 +1047,7 @@
       "id": "hazem",
       "firstName": "Hazem",
       "firstNameAr": "حازم",
-      "surname": "Alahmad",
+      "surname": null,
       "gender": "male",
       "parentId": "nawal",
       "spouseIds": [
@@ -1063,7 +1063,7 @@
       "id": "maysa",
       "firstName": "Maysa",
       "firstNameAr": "ميسا",
-      "surname": "Alahmad",
+      "surname": null,
       "gender": "female",
       "parentId": "nawal",
       "spouseIds": [
@@ -1079,7 +1079,7 @@
       "id": "mayada",
       "firstName": "Mayada",
       "firstNameAr": "ميادة",
-      "surname": "Alahmad",
+      "surname": null,
       "gender": "female",
       "parentId": "nawal",
       "spouseIds": [
@@ -1095,7 +1095,7 @@
       "id": "maram",
       "firstName": "Maram",
       "firstNameAr": "مرام",
-      "surname": "Alahmad",
+      "surname": null,
       "gender": "female",
       "parentId": "nawal",
       "spouseIds": [

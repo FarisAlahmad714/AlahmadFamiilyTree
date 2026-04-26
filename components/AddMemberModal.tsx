@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { X, UserPlus } from 'lucide-react'
 import type { Person } from '@/lib/family-data'
 import { buildNameTranslationPairs, resolveBilingualName } from '@/lib/name-translation'
+import { getInheritedSurname } from '@/lib/surname-inheritance'
 
 interface Props {
   allPeople: Person[]
@@ -32,11 +33,32 @@ export default function AddMemberModal({ allPeople, onClose, onAdd }: Props) {
   const [error, setError] = useState('')
   const namePairs = useMemo(() => buildNameTranslationPairs(allPeople), [allPeople])
 
+  const getSurnameForParent = (parentId: string | null) => {
+    if (!parentId) return { surname: 'Alahmad', surnameAr: 'الأحمد' }
+    return getInheritedSurname(
+      {
+        id: 'new-member',
+        parentId,
+        motherId: null,
+        surname: null,
+        surnameAr: null,
+      },
+      allPeople,
+    ) ?? { surname: null, surnameAr: null }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     const firstName = resolveBilingualName(form.firstName, form.firstNameAr, '', '', namePairs)
-    const surname = resolveBilingualName(form.surname, form.surnameAr, 'Alahmad', 'الأحمد', namePairs)
+    const inheritedSurname = getSurnameForParent(form.parentId)
+    const surname = resolveBilingualName(
+      form.surname,
+      form.surnameAr,
+      inheritedSurname.surname,
+      inheritedSurname.surnameAr,
+      namePairs,
+    )
     if (!firstName.english && !firstName.arabic) {
       setError('Enter the name in English or Arabic.')
       return
@@ -213,7 +235,23 @@ export default function AddMemberModal({ allPeople, onClose, onAdd }: Props) {
               <select
                 style={inputStyle}
                 value={form.parentId ?? ''}
-                onChange={(e) => setForm((f) => ({ ...f, parentId: e.target.value || null }))}
+                onChange={(e) => {
+                  const parentId = e.target.value || null
+                  const inheritedSurname = getSurnameForParent(parentId)
+                  setForm((f) => {
+                    const canReplaceSurname = !f.surname.trim() || f.surname === 'Alahmad'
+                    return {
+                      ...f,
+                      parentId,
+                      ...(canReplaceSurname
+                        ? {
+                            surname: inheritedSurname.surname ?? '',
+                            surnameAr: inheritedSurname.surnameAr ?? '',
+                          }
+                        : {}),
+                    }
+                  })
+                }}
               >
                 <option value="">No parent</option>
                 {allPeople.map((p) => (
