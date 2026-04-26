@@ -37,10 +37,20 @@ function SpouseHeartBadge({ spouse, onSelect }: { spouse: Person; onSelect: (p: 
       >
         {spouseGone && (
           <>
-            {/* Left mini wing */}
-            <path d="M 10,-1 C 6,-5 0,-4 0,-2 C 1,0 7,0 10,1" fill="rgba(255,255,255,0.55)" stroke="rgba(255,255,255,0.7)" strokeWidth="0.6"/>
             {/* Right mini wing */}
-            <path d="M 22,-1 C 26,-5 32,-4 32,-2 C 31,0 25,0 22,1" fill="rgba(255,255,255,0.55)" stroke="rgba(255,255,255,0.7)" strokeWidth="0.6"/>
+            <g transform="translate(26, 0)" fill="white" stroke="#b8ccee" strokeWidth="0.6">
+              <g transform="rotate(-30)"><ellipse cx="5" cy="0" rx="6" ry="1.8"/></g>
+              <g transform="rotate(-10)"><ellipse cx="6" cy="0" rx="7" ry="2.2"/></g>
+              <g transform="rotate(14)"><ellipse cx="5" cy="0" rx="6" ry="1.8"/></g>
+            </g>
+            {/* Left mini wing (mirror) */}
+            <g transform="translate(6, 0) scale(-1,1)" fill="white" stroke="#b8ccee" strokeWidth="0.6">
+              <g transform="rotate(-30)"><ellipse cx="5" cy="0" rx="6" ry="1.8"/></g>
+              <g transform="rotate(-10)"><ellipse cx="6" cy="0" rx="7" ry="2.2"/></g>
+              <g transform="rotate(14)"><ellipse cx="5" cy="0" rx="6" ry="1.8"/></g>
+            </g>
+            {/* Mini halo */}
+            <ellipse cx="16" cy="-3" rx="6" ry="2.2" fill="rgba(240,192,48,0.18)" stroke="#e8b820" strokeWidth="1.2"/>
           </>
         )}
         <path
@@ -132,20 +142,35 @@ function PersonNode({ data, selected }: NodeProps<PersonNodeType>) {
         </div>
       )}
 
-      {/* Angel wings — shown for deceased persons, sit behind the card */}
+      {/* Angel wings — shown for deceased persons */}
       {isDeceased && (
         <svg
-          viewBox="0 0 244 64"
-          style={{ position: 'absolute', top: 0, left: -24, width: 244, height: 64, pointerEvents: 'none', overflow: 'visible' }}
+          viewBox="0 0 284 78"
+          style={{ position: 'absolute', top: -7, left: -44, width: 284, height: 78, pointerEvents: 'none', overflow: 'visible' }}
         >
-          {/* Left wing — 3 feather layers */}
-          <path d="M 24,12 C 14,5 3,5 0,11 C 3,20 16,21 24,23 Z" fill="rgba(255,255,255,0.40)" stroke="rgba(255,255,255,0.58)" strokeWidth="0.6"/>
-          <path d="M 24,23 C 11,26 1,30 0,26 C 3,34 14,36 24,33 Z" fill="rgba(255,255,255,0.34)" stroke="rgba(255,255,255,0.52)" strokeWidth="0.6"/>
-          <path d="M 24,33 C 13,37 2,42 1,40 C 5,46 16,46 24,43 Z" fill="rgba(255,255,255,0.28)" stroke="rgba(255,255,255,0.44)" strokeWidth="0.6"/>
-          {/* Right wing — mirror */}
-          <path d="M 220,12 C 230,5 241,5 244,11 C 241,20 228,21 220,23 Z" fill="rgba(255,255,255,0.40)" stroke="rgba(255,255,255,0.58)" strokeWidth="0.6"/>
-          <path d="M 220,23 C 233,26 243,30 244,26 C 241,34 230,36 220,33 Z" fill="rgba(255,255,255,0.34)" stroke="rgba(255,255,255,0.52)" strokeWidth="0.6"/>
-          <path d="M 220,33 C 231,37 242,42 243,40 C 239,46 228,46 220,43 Z" fill="rgba(255,255,255,0.28)" stroke="rgba(255,255,255,0.44)" strokeWidth="0.6"/>
+          {/* ── Right wing: 5 feathers fanning out from card right edge ── */}
+          <g transform="translate(240, 42)" fill="white" stroke="#b8ccee" strokeWidth="0.75">
+            <g transform="rotate(-34)"><ellipse cx="20" cy="0" rx="22" ry="5"/><line x1="2" y1="0" x2="20" y2="0" stroke="#c8d8f0" strokeWidth="0.5"/></g>
+            <g transform="rotate(-19)"><ellipse cx="23" cy="0" rx="25" ry="6.5"/><line x1="2" y1="0" x2="23" y2="0" stroke="#c8d8f0" strokeWidth="0.5"/></g>
+            <g transform="rotate(-4)"><ellipse cx="24" cy="0" rx="27" ry="7"/><line x1="2" y1="0" x2="24" y2="0" stroke="#c8d8f0" strokeWidth="0.5"/></g>
+            <g transform="rotate(12)"><ellipse cx="23" cy="0" rx="25" ry="6.5"/><line x1="2" y1="0" x2="23" y2="0" stroke="#c8d8f0" strokeWidth="0.5"/></g>
+            <g transform="rotate(27)"><ellipse cx="19" cy="0" rx="21" ry="5"/><line x1="2" y1="0" x2="19" y2="0" stroke="#c8d8f0" strokeWidth="0.5"/></g>
+          </g>
+          {/* ── Left wing: mirror ── */}
+          <g transform="translate(44, 42) scale(-1, 1)" fill="white" stroke="#b8ccee" strokeWidth="0.75">
+            <g transform="rotate(-34)"><ellipse cx="20" cy="0" rx="22" ry="5"/><line x1="2" y1="0" x2="20" y2="0" stroke="#c8d8f0" strokeWidth="0.5"/></g>
+            <g transform="rotate(-19)"><ellipse cx="23" cy="0" rx="25" ry="6.5"/><line x1="2" y1="0" x2="23" y2="0" stroke="#c8d8f0" strokeWidth="0.5"/></g>
+            <g transform="rotate(-4)"><ellipse cx="24" cy="0" rx="27" ry="7"/><line x1="2" y1="0" x2="24" y2="0" stroke="#c8d8f0" strokeWidth="0.5"/></g>
+            <g transform="rotate(12)"><ellipse cx="23" cy="0" rx="25" ry="6.5"/><line x1="2" y1="0" x2="23" y2="0" stroke="#c8d8f0" strokeWidth="0.5"/></g>
+            <g transform="rotate(27)"><ellipse cx="19" cy="0" rx="21" ry="5"/><line x1="2" y1="0" x2="19" y2="0" stroke="#c8d8f0" strokeWidth="0.5"/></g>
+          </g>
+          {/* ── Gold halo ── */}
+          <ellipse cx="142" cy="6" rx="20" ry="7" fill="rgba(240,192,48,0.15)" stroke="#e8b820" strokeWidth="2.2"/>
+          {/* ── Sparkles ── */}
+          <text x="74" y="20" fontSize="8" fill="#e8b820" textAnchor="middle">✦</text>
+          <text x="210" y="20" fontSize="8" fill="#e8b820" textAnchor="middle">✦</text>
+          <text x="102" y="10" fontSize="5" fill="#c8d8f0" textAnchor="middle">✦</text>
+          <text x="182" y="10" fontSize="5" fill="#c8d8f0" textAnchor="middle">✦</text>
         </svg>
       )}
 
