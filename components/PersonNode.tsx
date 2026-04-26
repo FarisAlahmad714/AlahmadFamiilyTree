@@ -144,62 +144,20 @@ function PersonNode({ data, selected }: NodeProps<PersonNodeType>) {
 
       {/* Angel wings — shown for deceased persons */}
       {isDeceased && (
-        <svg
-          viewBox="0 0 380 170"
-          style={{ position: 'absolute', top: -80, left: -92, width: 380, height: 170, pointerEvents: 'none', overflow: 'visible' }}
-        >
-          {/*
-            Card occupies x=92..288 (196px wide), y=80..170 in SVG.
-            Wing bases attach at (288,118) and (92,118) — ~38px below card top.
-            Wing tips rise to y≈28, which is ~52px above card top.
-          */}
-
-          {/* ── Right wing — fans upward from card's right side ── */}
-          <g transform="translate(288, 118)">
-            {/* Primary feather group — outermost, longest sweep */}
-            <path d="M 0,0 C 6,-28 30,-74 68,-88 C 82,-93 88,-74 78,-50 C 64,-24 28,-6 0,0 Z"
-              fill="rgba(255,255,255,0.93)" stroke="#b0c4e8" strokeWidth="1.3"/>
-            {/* Secondary feathers — mid layer */}
-            <path d="M 0,0 C 5,-21 24,-58 54,-70 C 65,-74 70,-58 61,-37 C 49,-17 22,-4 0,0 Z"
-              fill="rgba(240,246,255,0.86)" stroke="#a8bce0" strokeWidth="1.1"/>
-            {/* Tertiary feathers — inner, mostly upward */}
-            <path d="M 0,0 C 3,-14 16,-40 38,-50 C 46,-53 49,-40 42,-23 C 33,-9 14,-2 0,0 Z"
-              fill="rgba(224,236,255,0.79)" stroke="#9cb0d8" strokeWidth="1.0"/>
-            {/* Innermost feather — nearly vertical */}
-            <path d="M 0,0 C 2,-9 8,-24 20,-30 C 25,-32 27,-23 22,-11 C 16,-2 6,0 0,0 Z"
-              fill="rgba(210,225,255,0.70)" stroke="#8ea8d4" strokeWidth="0.9"/>
-            {/* Quill lines — radiate from base to feather tips */}
-            <line x1="0" y1="0" x2="64" y2="-86" stroke="#c0d0ec" strokeWidth="0.9" opacity="0.65"/>
-            <line x1="0" y1="0" x2="50" y2="-72" stroke="#c0d0ec" strokeWidth="0.8" opacity="0.55"/>
-            <line x1="0" y1="0" x2="32" y2="-56" stroke="#c0d0ec" strokeWidth="0.7" opacity="0.50"/>
-            <line x1="0" y1="0" x2="14" y2="-36" stroke="#c0d0ec" strokeWidth="0.7" opacity="0.40"/>
-          </g>
-
-          {/* ── Left wing — mirror of right ── */}
-          <g transform="translate(92, 118) scale(-1, 1)">
-            <path d="M 0,0 C 6,-28 30,-74 68,-88 C 82,-93 88,-74 78,-50 C 64,-24 28,-6 0,0 Z"
-              fill="rgba(255,255,255,0.93)" stroke="#b0c4e8" strokeWidth="1.3"/>
-            <path d="M 0,0 C 5,-21 24,-58 54,-70 C 65,-74 70,-58 61,-37 C 49,-17 22,-4 0,0 Z"
-              fill="rgba(240,246,255,0.86)" stroke="#a8bce0" strokeWidth="1.1"/>
-            <path d="M 0,0 C 3,-14 16,-40 38,-50 C 46,-53 49,-40 42,-23 C 33,-9 14,-2 0,0 Z"
-              fill="rgba(224,236,255,0.79)" stroke="#9cb0d8" strokeWidth="1.0"/>
-            <path d="M 0,0 C 2,-9 8,-24 20,-30 C 25,-32 27,-23 22,-11 C 16,-2 6,0 0,0 Z"
-              fill="rgba(210,225,255,0.70)" stroke="#8ea8d4" strokeWidth="0.9"/>
-            <line x1="0" y1="0" x2="64" y2="-86" stroke="#c0d0ec" strokeWidth="0.9" opacity="0.65"/>
-            <line x1="0" y1="0" x2="50" y2="-72" stroke="#c0d0ec" strokeWidth="0.8" opacity="0.55"/>
-            <line x1="0" y1="0" x2="32" y2="-56" stroke="#c0d0ec" strokeWidth="0.7" opacity="0.50"/>
-            <line x1="0" y1="0" x2="14" y2="-36" stroke="#c0d0ec" strokeWidth="0.7" opacity="0.40"/>
-          </g>
-
-          {/* ── Gold halo — floating above center of card ── */}
-          <ellipse cx="190" cy="18" rx="26" ry="10" fill="rgba(240,192,48,0.18)" stroke="#e8b820" strokeWidth="2.6"/>
-
-          {/* ── Sparkles ── */}
-          <text x="92"  y="46" fontSize="11" fill="#e8b820" textAnchor="middle">✦</text>
-          <text x="288" y="46" fontSize="11" fill="#e8b820" textAnchor="middle">✦</text>
-          <text x="128" y="14" fontSize="7"  fill="#c8d8f0" textAnchor="middle">✦</text>
-          <text x="252" y="14" fontSize="7"  fill="#c8d8f0" textAnchor="middle">✦</text>
-        </svg>
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          alt=""
+          src="/angel-wings-transparent.png"
+          style={{
+            position: 'absolute',
+            width: 400,
+            top: -155,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            pointerEvents: 'none',
+            userSelect: 'none',
+          }}
+        />
       )}
 
       <div
