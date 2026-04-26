@@ -24,6 +24,10 @@ export interface FamilyData {
   people: Person[]
 }
 
+export type PersonUpdatePayload = Partial<Person> & {
+  childIds?: string[]
+}
+
 const DATA_PATH = path.join(process.cwd(), 'data', 'family.json')
 
 export function readFamilyData(): FamilyData {

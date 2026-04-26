@@ -16,7 +16,7 @@ import {
 import '@xyflow/react/dist/style.css'
 import { motion, AnimatePresence } from 'framer-motion'
 import dagre from '@dagrejs/dagre'
-import type { FamilyData, Person } from '@/lib/family-data'
+import type { FamilyData, Person, PersonUpdatePayload } from '@/lib/family-data'
 import type { Session } from '@/lib/auth'
 import { LanguageContext, type Language } from '@/lib/language-context'
 import PersonNode, { type PersonNodeType } from './PersonNode'
@@ -570,17 +570,20 @@ function FamilyTreeInner({ initialData, session }: Props) {
             allPeople={familyData.people}
             onClose={() => setSelectedPerson(null)}
             session={session}
-            onUpdate={async (updates) => {
+            onUpdate={async (updates: PersonUpdatePayload) => {
               const res = await fetch(`/api/family/${selectedPerson.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updates),
               })
               if (res.ok) {
-                const updated: Person = await res.json()
-                refreshTree({
-                  people: familyData.people.map((p) => (p.id === updated.id ? updated : p)),
-                })
+                const payload = await res.json() as Person | { person: Person; people: Person[] }
+                const updated = 'person' in payload ? payload.person : payload
+                refreshTree(
+                  'people' in payload
+                    ? { people: payload.people }
+                    : { people: familyData.people.map((p) => (p.id === updated.id ? updated : p)) }
+                )
                 setSelectedPerson(updated)
               }
             }}

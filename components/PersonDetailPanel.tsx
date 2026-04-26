@@ -3,7 +3,7 @@
 import { useMemo, useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Edit2, Save, Trash2, Camera, Plus, ChevronLeft, ChevronRight } from 'lucide-react'
-import type { Person } from '@/lib/family-data'
+import type { Person, PersonUpdatePayload } from '@/lib/family-data'
 import type { Session } from '@/lib/auth'
 import { useLanguage } from '@/lib/language-context'
 import { buildNameTranslationPairs, resolveBilingualName } from '@/lib/name-translation'
@@ -13,8 +13,37 @@ interface Props {
   allPeople: Person[]
   onClose: () => void
   session: Session
-  onUpdate: (updates: Partial<Person>) => Promise<void>
+  onUpdate: (updates: PersonUpdatePayload) => Promise<void>
   onDelete?: () => Promise<void>
+}
+
+function collectDescendants(people: Person[], personId: string): Set<string> {
+  const result = new Set<string>()
+  const queue = [personId]
+  while (queue.length) {
+    const current = queue.shift()!
+    for (const person of people) {
+      if (person.parentId === current && !result.has(person.id)) {
+        result.add(person.id)
+        queue.push(person.id)
+      }
+    }
+  }
+  return result
+}
+
+function collectAncestors(people: Person[], personId: string): Set<string> {
+  const result = new Set<string>()
+  let current = people.find((p) => p.id === personId)
+  while (current?.parentId && !result.has(current.parentId)) {
+    result.add(current.parentId)
+    current = people.find((p) => p.id === current!.parentId)
+  }
+  return result
+}
+
+function toggleId(ids: string[], id: string): string[] {
+  return ids.includes(id) ? ids.filter((existing) => existing !== id) : [...ids, id]
 }
 
 export default function PersonDetailPanel({
@@ -41,17 +70,24 @@ export default function PersonDetailPanel({
     person.surnameAr,
     namePairs,
   )
+  const initialChildIds = allPeople.filter((p) => p.parentId === person.id).map((p) => p.id)
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState<Partial<Person>>({
     firstName: initialFirstName.english || person.firstName,
     firstNameAr: initialFirstName.arabic,
     surname: initialSurname.english,
     surnameAr: initialSurname.arabic,
+    fullName: person.fullName ?? '',
+    gender: person.gender,
+    parentId: person.parentId,
+    motherId: person.motherId ?? null,
+    spouseIds: person.spouseIds ?? [],
     birthYear: person.birthYear,
     deathYear: person.deathYear,
     location: person.location,
     notes: person.notes,
   })
+  const [childIds, setChildIds] = useState<string[]>(initialChildIds)
   const [saving, setSaving] = useState(false)
 
   // Photos
@@ -61,8 +97,14 @@ export default function PersonDetailPanel({
   const currentPhotos = person.photos ?? []
 
   const parent = allPeople.find((p) => p.id === person.parentId)
+  const mother = person.motherId ? allPeople.find((p) => p.id === person.motherId) : null
   const children = allPeople.filter((p) => p.parentId === person.id)
   const spouses = allPeople.filter((p) => person.spouseIds.includes(p.id))
+  const ancestorIds = useMemo(() => collectAncestors(allPeople, person.id), [allPeople, person.id])
+  const descendantIds = useMemo(() => collectDescendants(allPeople, person.id), [allPeople, person.id])
+  const relationCandidates = allPeople.filter((p) => p.id !== person.id)
+  const parentCandidates = relationCandidates.filter((p) => !descendantIds.has(p.id))
+  const childCandidates = relationCandidates.filter((p) => !ancestorIds.has(p.id))
 
   const translatedFirstName = resolveBilingualName(
     person.firstName,
@@ -121,12 +163,18 @@ export default function PersonDetailPanel({
       person.surnameAr,
       namePairs,
     )
-    const cleaned: Partial<Person> = {
+    const cleaned: PersonUpdatePayload = {
       ...form,
       firstName: firstName.english || person.firstName,
       firstNameAr: firstName.arabic || undefined,
       surname: surname.english || null,
       surnameAr: surname.arabic || undefined,
+      fullName: form.fullName?.trim() || undefined,
+      gender: form.gender ?? person.gender,
+      parentId: form.parentId || null,
+      motherId: form.motherId || null,
+      spouseIds: form.spouseIds ?? [],
+      childIds,
     }
     await onUpdate(cleaned)
     setSaving(false)
@@ -182,6 +230,47 @@ export default function PersonDetailPanel({
     textTransform: 'uppercase',
     letterSpacing: '0.05em',
   }
+
+  const relationListStyle: React.CSSProperties = {
+    maxHeight: 132,
+    overflowY: 'auto',
+    padding: 6,
+    borderRadius: 10,
+    background: 'var(--bg-secondary)',
+    border: '1px solid var(--border-color)',
+  }
+
+  const relationRowStyle: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    padding: '6px 5px',
+    borderRadius: 7,
+    color: 'var(--text-primary)',
+    fontSize: 12,
+    cursor: 'pointer',
+  }
+
+  const renderPersonCheckboxes = (
+    people: Person[],
+    selectedIds: string[],
+    onChange: (ids: string[]) => void,
+  ) => (
+    <div style={relationListStyle}>
+      {people.map((candidate) => (
+        <label key={candidate.id} style={relationRowStyle}>
+          <input
+            type="checkbox"
+            checked={selectedIds.includes(candidate.id)}
+            onChange={() => onChange(toggleId(selectedIds, candidate.id))}
+          />
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {personFullDisplayName(candidate)}
+          </span>
+        </label>
+      ))}
+    </div>
+  )
 
   return (
     <>
@@ -473,6 +562,72 @@ export default function PersonDetailPanel({
                       placeholder="اسم العائلة بالعربي"
                     />
                   </div>
+                  <div>
+                    <label style={labelStyle}>Full Traditional Name</label>
+                    <input
+                      type="text"
+                      value={form.fullName ?? ''}
+                      onChange={(e) => setForm((f) => ({ ...f, fullName: e.target.value }))}
+                      style={inputStyle}
+                      placeholder="Full traditional name"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label style={labelStyle}>Gender</label>
+                      <select
+                        value={form.gender ?? 'other'}
+                        onChange={(e) => setForm((f) => ({ ...f, gender: e.target.value as Person['gender'] }))}
+                        style={inputStyle}
+                      >
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={labelStyle}>Parent</label>
+                      <select
+                        value={form.parentId ?? ''}
+                        onChange={(e) => setForm((f) => ({ ...f, parentId: e.target.value || null }))}
+                        style={inputStyle}
+                      >
+                        <option value="">No parent</option>
+                        {parentCandidates.map((candidate) => (
+                          <option key={candidate.id} value={candidate.id}>
+                            {personFullDisplayName(candidate)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Mother</label>
+                    <select
+                      value={form.motherId ?? ''}
+                      onChange={(e) => setForm((f) => ({ ...f, motherId: e.target.value || null }))}
+                      style={inputStyle}
+                    >
+                      <option value="">No mother set</option>
+                      {parentCandidates.map((candidate) => (
+                        <option key={candidate.id} value={candidate.id}>
+                          {personFullDisplayName(candidate)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Wife / Spouse ({(form.spouseIds ?? []).length})</label>
+                    {renderPersonCheckboxes(
+                      relationCandidates,
+                      form.spouseIds ?? [],
+                      (ids) => setForm((f) => ({ ...f, spouseIds: ids })),
+                    )}
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Children ({childIds.length})</label>
+                    {renderPersonCheckboxes(childCandidates, childIds, setChildIds)}
+                  </div>
                   <div style={{ height: 1, background: 'var(--border-color)', margin: '8px 0' }} />
                 </>
               )}
@@ -660,13 +815,21 @@ export default function PersonDetailPanel({
             )}
 
             {/* ── Connections ───────────────────────────────────────────── */}
-            {(parent || children.length > 0 || spouses.length > 0) && (
+            {(parent || mother || children.length > 0 || spouses.length > 0) && (
               <div className="pt-3 space-y-2" style={{ borderTop: '1px solid var(--border-color)' }}>
                 {parent && (
                   <div>
                     <p style={labelStyle}>Parent</p>
                     <p style={{ fontSize: 13, color: 'var(--text-primary)' }}>
                       {personFullDisplayName(parent)}
+                    </p>
+                  </div>
+                )}
+                {mother && mother.id !== parent?.id && (
+                  <div>
+                    <p style={labelStyle}>Mother</p>
+                    <p style={{ fontSize: 13, color: 'var(--text-primary)' }}>
+                      {personFullDisplayName(mother)}
                     </p>
                   </div>
                 )}
