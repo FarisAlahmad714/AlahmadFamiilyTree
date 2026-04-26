@@ -20,27 +20,31 @@ export type PersonNodeType = Node<
 >
 
 function SpouseHeartBadge({ spouse, onSelect }: { spouse: Person; onSelect: (p: Person) => void }) {
-  const initial    = spouse.firstName.charAt(0).toUpperCase()
-  const label      = `${spouse.firstName}${spouse.surname ? ' ' + spouse.surname : ''}`
-  const spouseGone = !!(spouse.deceased || spouse.deathYear)
+  const initial     = spouse.firstName.charAt(0).toUpperCase()
+  const label       = `${spouse.firstName}${spouse.surname ? ' ' + spouse.surname : ''}`
+  const spouseGone  = !!(spouse.deceased || spouse.deathYear)
   return (
     <div
       title={label}
       onClick={(e) => { e.stopPropagation(); onSelect(spouse) }}
-      style={{ position: 'relative', width: 30, height: spouseGone ? 44 : 30, flexShrink: 0, cursor: 'pointer' }}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        flexShrink: 0,
+        cursor: 'pointer',
+      }}
     >
       {spouseGone && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           alt=""
-          src="/angel-halo.png"
+          src="/angel-wings-transparent.png"
           style={{
-            position: 'absolute',
-            width: 44,
-            top: 0,
-            left: '50%',
-            transform: 'translateX(-50%)',
+            width: 90,
+            marginBottom: -14,
             pointerEvents: 'none',
+            userSelect: 'none',
           }}
         />
       )}
@@ -48,7 +52,7 @@ function SpouseHeartBadge({ spouse, onSelect }: { spouse: Person; onSelect: (p: 
         viewBox="0 0 32 30"
         width={30}
         height={30}
-        style={{ position: 'absolute', bottom: 0, left: 0, filter: 'drop-shadow(0 2px 5px rgba(0,0,0,0.35))' }}
+        style={{ filter: 'drop-shadow(0 2px 5px rgba(0,0,0,0.35))', position: 'relative', zIndex: 1 }}
       >
         <path
           d="M16 27C16 27 2 18.5 2 10.5C2 6.358 5.358 3 9.5 3C11.824 3 13.9 4.05 15.3 5.73C15.68 6.19 16.32 6.19 16.7 5.73C18.1 4.05 20.176 3 22.5 3C26.642 3 30 6.358 30 10.5C30 18.5 16 27 16 27Z"
@@ -143,24 +147,15 @@ function PersonNode({ data, selected }: NodeProps<PersonNodeType>) {
         </div>
       )}
 
-      {/* Angel wings — full image above tree lines, halo separate */}
+      {/* Angel wings — full image above tree lines */}
       {isDeceased && (
-        <>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img alt="" src="/angel-wings-transparent.png" style={{
-            position: 'absolute', width: 260, top: -88,
-            left: '50%', transform: 'translateX(-50%)',
-            pointerEvents: 'none', userSelect: 'none',
-            zIndex: 100,
-          }} />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img alt="" src="/angel-halo.png" style={{
-            position: 'absolute', width: 100, top: -48,
-            left: '50%', transform: 'translateX(-50%)',
-            pointerEvents: 'none', userSelect: 'none',
-            zIndex: 101,
-          }} />
-        </>
+        // eslint-disable-next-line @next/next/no-img-element
+        <img alt="" src="/angel-wings-transparent.png" style={{
+          position: 'absolute', width: 680, top: -90,
+          left: '50%', transform: 'translateX(-50%)',
+          pointerEvents: 'none', userSelect: 'none',
+          zIndex: 100,
+        }} />
       )}
 
       <div

@@ -39,13 +39,19 @@ async function removeBg(buf, w, h) {
   console.log('wing-right.png saved')
 }
 
-// ── Halo: center strip x=158..326, y=0..100 ──────────────────────────────────
+// ── Halo: center strip x=158..326, y=0..100 — hard cutoff, no feather ────────
 {
   const { data, info } = await sharp(src)
     .extract({ left: 158, top: 0, width: 168, height: 100 })
     .ensureAlpha().raw().toBuffer({ resolveWithObject: true })
-  const clean = await removeBg(data, info.width, info.height)
-  await sharp(clean, { raw: { width: info.width, height: info.height, channels: 4 } })
+  const buf = Buffer.from(data)
+  const hardTol = 80  // wider tolerance, hard cut (0 or 255 — no semi-transparency)
+  for (let i = 0; i < buf.length; i += 4) {
+    const r = buf[i], g = buf[i+1], b = buf[i+2]
+    const dist = Math.sqrt((r-bgR)**2 + (g-bgG)**2 + (b-bgB)**2)
+    buf[i+3] = dist < hardTol ? 0 : 255
+  }
+  await sharp(buf, { raw: { width: info.width, height: info.height, channels: 4 } })
     .png().toFile('public/angel-halo.png')
   console.log('angel-halo.png saved')
 }

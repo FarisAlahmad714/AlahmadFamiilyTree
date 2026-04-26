@@ -54,6 +54,15 @@ body {
   background-color: var(--bg-primary) !important;
 }
 
+/* Allow wings/decorations to extend outside node bounds */
+.react-flow__node,
+.react-flow__node > *,
+.react-flow__nodes,
+.react-flow__renderer,
+.react-flow__viewport {
+  overflow: visible !important;
+}
+
 .react-flow__edge-path {
   stroke: var(--edge-color) !important;
   stroke-width: 2px !important;
