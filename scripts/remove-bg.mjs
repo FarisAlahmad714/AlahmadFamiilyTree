@@ -1,38 +1,56 @@
 import sharp from 'sharp'
-import { readFileSync, writeFileSync } from 'fs'
 
 const src = 'public/angel-wings.jpg'
-const dst = 'public/angel-wings-transparent.png'
 
+// ── 1. Full wings + transparent bg ───────────────────────────────────────────
 const image = sharp(src)
-const meta = await image.metadata()
-const { width, height } = meta
+const { width, height } = await image.metadata()
 
-// Get raw RGBA pixels
 const raw = await sharp(src).ensureAlpha().raw().toBuffer()
-
-// Sample the top-left corner to detect the background color
-const bgR = raw[0], bgG = raw[1], bgB = raw[2]
-console.log(`Detected bg color: rgb(${bgR}, ${bgG}, ${bgB})`)
-
-const tolerance = 55  // how similar a pixel needs to be to the bg to be erased
+const bgR = 89, bgG = 99, bgB = 194
+const tolerance = 55
 const data = Buffer.from(raw)
 
 for (let i = 0; i < data.length; i += 4) {
   const r = data[i], g = data[i+1], b = data[i+2]
-  const dr = Math.abs(r - bgR)
-  const dg = Math.abs(g - bgG)
-  const db = Math.abs(b - bgB)
-  const dist = Math.sqrt(dr*dr + dg*dg + db*db)
+  const dist = Math.sqrt((r-bgR)**2 + (g-bgG)**2 + (b-bgB)**2)
   if (dist < tolerance) {
-    // Feather the edges slightly instead of hard cut
-    const alpha = Math.min(255, Math.round((dist / tolerance) * 255 * 2))
-    data[i+3] = alpha
+    data[i+3] = Math.min(255, Math.round((dist / tolerance) * 255 * 2))
+  }
+}
+
+// ── 2. Also erase the halo area from the wings image ─────────────────────────
+// Halo sits roughly at x=158..326, y=18..90 in the 484×243 source image
+// Zero out those pixels so the halo can be placed separately
+for (let y = 10; y < 95; y++) {
+  for (let x = 148; x < 336; x++) {
+    const i = (y * width + x) * 4
+    data[i+3] = 0   // fully transparent — remove the halo region
   }
 }
 
 await sharp(data, { raw: { width, height, channels: 4 } })
   .png()
-  .toFile(dst)
+  .toFile('public/angel-wings-transparent.png')
+console.log('Wings (no halo) saved')
 
-console.log(`Saved transparent PNG: ${dst}`)
+// ── 3. Halo-only crop ────────────────────────────────────────────────────────
+const haloRaw = await sharp(src)
+  .extract({ left: 148, top: 10, width: 188, height: 85 })
+  .ensureAlpha()
+  .raw()
+  .toBuffer({ resolveWithObject: true })
+
+const { data: hd, info: hi } = haloRaw
+const hBuf = Buffer.from(hd)
+for (let i = 0; i < hBuf.length; i += 4) {
+  const r = hBuf[i], g = hBuf[i+1], b = hBuf[i+2]
+  const dist = Math.sqrt((r-bgR)**2 + (g-bgG)**2 + (b-bgB)**2)
+  if (dist < tolerance) {
+    hBuf[i+3] = Math.min(255, Math.round((dist / tolerance) * 255 * 2))
+  }
+}
+await sharp(hBuf, { raw: { width: hi.width, height: hi.height, channels: 4 } })
+  .png()
+  .toFile('public/angel-halo.png')
+console.log(`Halo saved: ${hi.width}×${hi.height}`)

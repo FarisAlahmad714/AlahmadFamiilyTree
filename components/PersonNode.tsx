@@ -20,39 +20,36 @@ export type PersonNodeType = Node<
 >
 
 function SpouseHeartBadge({ spouse, onSelect }: { spouse: Person; onSelect: (p: Person) => void }) {
-  const initial     = spouse.firstName.charAt(0).toUpperCase()
-  const label       = `${spouse.firstName}${spouse.surname ? ' ' + spouse.surname : ''}`
-  const spouseGone  = !!(spouse.deceased || spouse.deathYear)
+  const initial    = spouse.firstName.charAt(0).toUpperCase()
+  const label      = `${spouse.firstName}${spouse.surname ? ' ' + spouse.surname : ''}`
+  const spouseGone = !!(spouse.deceased || spouse.deathYear)
   return (
     <div
       title={label}
       onClick={(e) => { e.stopPropagation(); onSelect(spouse) }}
-      style={{ width: 30, height: spouseGone ? 36 : 30, flexShrink: 0, cursor: 'pointer' }}
+      style={{ position: 'relative', width: 30, height: spouseGone ? 44 : 30, flexShrink: 0, cursor: 'pointer' }}
     >
+      {spouseGone && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          alt=""
+          src="/angel-halo.png"
+          style={{
+            position: 'absolute',
+            width: 44,
+            top: 0,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            pointerEvents: 'none',
+          }}
+        />
+      )}
       <svg
-        viewBox={spouseGone ? '0 -6 32 36' : '0 0 32 30'}
+        viewBox="0 0 32 30"
         width={30}
-        height={spouseGone ? 36 : 30}
-        style={{ filter: 'drop-shadow(0 2px 5px rgba(0,0,0,0.35))' }}
+        height={30}
+        style={{ position: 'absolute', bottom: 0, left: 0, filter: 'drop-shadow(0 2px 5px rgba(0,0,0,0.35))' }}
       >
-        {spouseGone && (
-          <>
-            {/* Right mini wing */}
-            <g transform="translate(26, 0)" fill="white" stroke="#b8ccee" strokeWidth="0.6">
-              <g transform="rotate(-30)"><ellipse cx="5" cy="0" rx="6" ry="1.8"/></g>
-              <g transform="rotate(-10)"><ellipse cx="6" cy="0" rx="7" ry="2.2"/></g>
-              <g transform="rotate(14)"><ellipse cx="5" cy="0" rx="6" ry="1.8"/></g>
-            </g>
-            {/* Left mini wing (mirror) */}
-            <g transform="translate(6, 0) scale(-1,1)" fill="white" stroke="#b8ccee" strokeWidth="0.6">
-              <g transform="rotate(-30)"><ellipse cx="5" cy="0" rx="6" ry="1.8"/></g>
-              <g transform="rotate(-10)"><ellipse cx="6" cy="0" rx="7" ry="2.2"/></g>
-              <g transform="rotate(14)"><ellipse cx="5" cy="0" rx="6" ry="1.8"/></g>
-            </g>
-            {/* Mini halo */}
-            <ellipse cx="16" cy="-3" rx="6" ry="2.2" fill="rgba(240,192,48,0.18)" stroke="#e8b820" strokeWidth="1.2"/>
-          </>
-        )}
         <path
           d="M16 27C16 27 2 18.5 2 10.5C2 6.358 5.358 3 9.5 3C11.824 3 13.9 4.05 15.3 5.73C15.68 6.19 16.32 6.19 16.7 5.73C18.1 4.05 20.176 3 22.5 3C26.642 3 30 6.358 30 10.5C30 18.5 16 27 16 27Z"
           fill="#e63946"
@@ -87,7 +84,9 @@ function PersonNode({ data, selected }: NodeProps<PersonNodeType>) {
   const accent = isFemale ? 'var(--accent-female)' : 'var(--accent)'
   const accentGlow = isFemale ? 'rgba(236,72,153,0.3)' : 'var(--accent-glow)'
 
-  const borderColor = selected
+  const borderColor = isDeceased
+    ? 'rgba(232,184,32,0.85)'
+    : selected
     ? accent
     : isPatriarch
     ? 'var(--node-root-border)'
@@ -99,7 +98,9 @@ function PersonNode({ data, selected }: NodeProps<PersonNodeType>) {
 
   const cardBg = isPatriarch ? 'var(--node-root-bg)' : 'var(--bg-card)'
 
-  const boxShadow = selected
+  const boxShadow = isDeceased
+    ? '0 0 0 2px rgba(232,184,32,0.5), 0 0 22px rgba(232,184,32,0.3), 0 4px 18px rgba(0,0,0,0.28)'
+    : selected
     ? `0 0 0 2px ${accent}, 0 0 28px ${accentGlow}`
     : isPatriarch
     ? '0 0 28px var(--accent-glow)'
@@ -145,19 +146,38 @@ function PersonNode({ data, selected }: NodeProps<PersonNodeType>) {
       {/* Angel wings — shown for deceased persons */}
       {isDeceased && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img
-          alt=""
-          src="/angel-wings-transparent.png"
-          style={{
-            position: 'absolute',
-            width: 400,
-            top: -155,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            pointerEvents: 'none',
-            userSelect: 'none',
-          }}
-        />
+        <>
+          {/* Wings (halo removed from this image) */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            alt=""
+            src="/angel-wings-transparent.png"
+            style={{
+              position: 'absolute',
+              width: 400,
+              top: -155,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              pointerEvents: 'none',
+              userSelect: 'none',
+            }}
+          />
+          {/* Halo — sits straddling the top center of the card */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            alt=""
+            src="/angel-halo.png"
+            style={{
+              position: 'absolute',
+              width: 180,
+              top: -38,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              pointerEvents: 'none',
+              userSelect: 'none',
+            }}
+          />
+        </>
       )}
 
       <div
