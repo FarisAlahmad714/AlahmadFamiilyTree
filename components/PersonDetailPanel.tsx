@@ -26,12 +26,27 @@ export default function PersonDetailPanel({
   onDelete,
 }: Props) {
   const language = useLanguage()
+  const namePairs = useMemo(() => buildNameTranslationPairs(allPeople), [allPeople])
+  const initialFirstName = resolveBilingualName(
+    person.firstName,
+    person.firstNameAr,
+    person.firstName,
+    person.firstNameAr,
+    namePairs,
+  )
+  const initialSurname = resolveBilingualName(
+    person.surname,
+    person.surnameAr,
+    person.surname,
+    person.surnameAr,
+    namePairs,
+  )
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState<Partial<Person>>({
-    firstName: person.firstName,
-    firstNameAr: person.firstNameAr ?? '',
-    surname: person.surname ?? '',
-    surnameAr: person.surnameAr ?? '',
+    firstName: initialFirstName.english || person.firstName,
+    firstNameAr: initialFirstName.arabic,
+    surname: initialSurname.english,
+    surnameAr: initialSurname.arabic,
     birthYear: person.birthYear,
     deathYear: person.deathYear,
     location: person.location,
@@ -48,7 +63,31 @@ export default function PersonDetailPanel({
   const parent = allPeople.find((p) => p.id === person.parentId)
   const children = allPeople.filter((p) => p.parentId === person.id)
   const spouses = allPeople.filter((p) => person.spouseIds.includes(p.id))
-  const namePairs = useMemo(() => buildNameTranslationPairs(allPeople), [allPeople])
+
+  const translatedFirstName = resolveBilingualName(
+    person.firstName,
+    person.firstNameAr,
+    person.firstName,
+    person.firstNameAr,
+    namePairs,
+  )
+  const translatedSurname = resolveBilingualName(
+    person.surname,
+    person.surnameAr,
+    person.surname,
+    person.surnameAr,
+    namePairs,
+  )
+  const personDisplayName = (p: Person) => {
+    const firstName = resolveBilingualName(p.firstName, p.firstNameAr, p.firstName, p.firstNameAr, namePairs)
+    return language === 'ar' ? firstName.arabic || firstName.english : firstName.english || firstName.arabic
+  }
+  const personDisplaySurname = (p: Person) => {
+    const surname = resolveBilingualName(p.surname, p.surnameAr, p.surname, p.surnameAr, namePairs)
+    return language === 'ar' ? surname.arabic || surname.english : surname.english || surname.arabic
+  }
+  const personFullDisplayName = (p: Person) =>
+    [personDisplayName(p), personDisplaySurname(p)].filter(Boolean).join(' ')
 
   // Lineage chain: walk parentId chain up to root
   const lineage: Person[] = []
@@ -58,10 +97,12 @@ export default function PersonDetailPanel({
     curr = allPeople.find((p) => p.id === curr!.parentId)
   }
 
-  const displayName =
-    language === 'ar' && person.firstNameAr ? person.firstNameAr : person.firstName
-  const displaySurname =
-    language === 'ar' && person.surnameAr ? person.surnameAr : person.surname
+  const displayName = language === 'ar'
+    ? translatedFirstName.arabic || translatedFirstName.english
+    : translatedFirstName.english || translatedFirstName.arabic
+  const displaySurname = language === 'ar'
+    ? translatedSurname.arabic || translatedSurname.english
+    : translatedSurname.english || translatedSurname.arabic
 
   // ─── Save edits ─────────────────────────────────────────────────────────────
   const handleSave = async () => {
@@ -349,7 +390,7 @@ export default function PersonDetailPanel({
                       fontSize: 12,
                       color: 'var(--text-secondary)',
                       marginTop: 1,
-                      fontFamily: language === 'ar' && person.surnameAr ? 'var(--font-arabic)' : undefined,
+                      fontFamily: language === 'ar' && displaySurname === translatedSurname.arabic ? 'var(--font-arabic)' : undefined,
                       direction: language === 'ar' ? 'rtl' : 'ltr',
                     }}
                   >
@@ -625,8 +666,7 @@ export default function PersonDetailPanel({
                   <div>
                     <p style={labelStyle}>Parent</p>
                     <p style={{ fontSize: 13, color: 'var(--text-primary)' }}>
-                      {language === 'ar' && parent.firstNameAr ? parent.firstNameAr : parent.firstName}
-                      {parent.surname ? ` ${parent.surname}` : ''}
+                      {personFullDisplayName(parent)}
                     </p>
                   </div>
                 )}
@@ -636,7 +676,7 @@ export default function PersonDetailPanel({
                     <div className="flex flex-wrap gap-1">
                       {spouses.map((s) => (
                         <span key={s.id} style={{ fontSize: 12, padding: '2px 8px', borderRadius: '20px', background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}>
-                          {language === 'ar' && s.firstNameAr ? s.firstNameAr : s.firstName}
+                          {personFullDisplayName(s)}
                         </span>
                       ))}
                     </div>
@@ -648,7 +688,7 @@ export default function PersonDetailPanel({
                     <div className="flex flex-wrap gap-1">
                       {children.map((c) => (
                         <span key={c.id} style={{ fontSize: 12, padding: '2px 8px', borderRadius: '20px', background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}>
-                          {language === 'ar' && c.firstNameAr ? c.firstNameAr : c.firstName}
+                          {personFullDisplayName(c)}
                         </span>
                       ))}
                     </div>
@@ -671,7 +711,7 @@ export default function PersonDetailPanel({
                               fontWeight: p.id === person.id ? 700 : 400,
                             }}
                           >
-                            {language === 'ar' && p.firstNameAr ? p.firstNameAr : p.firstName}
+                            {personDisplayName(p)}
                           </span>
                           {i < lineage.length - 1 && (
                             <span style={{ fontSize: 10, color: 'var(--text-secondary)', opacity: 0.5 }}>→</span>

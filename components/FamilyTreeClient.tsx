@@ -364,6 +364,22 @@ function FamilyTreeInner({ initialData, session }: Props) {
           />
           {showMinimap && (
             <MiniMap
+              key="interactive-graph-minimap"
+              pannable
+              zoomable
+              ariaLabel="Interactive family tree minimap"
+              onClick={(_, position) => {
+                setCenter(position.x, position.y, { zoom: 0.75, duration: 450 })
+              }}
+              onNodeClick={(event, node) => {
+                event.stopPropagation()
+                if (node.type !== 'person') return
+                const person = familyData.people.find((p) => p.id === node.id)
+                if (!person) return
+                setSelectedPerson(person)
+                zoomToNode(person.id)
+                window.history.replaceState(null, '', `/tree?p=${person.id}`)
+              }}
               nodeColor={(n) => {
                 const p = (n.data as { person?: Person }).person
                 if (!p) return 'transparent'
@@ -371,9 +387,21 @@ function FamilyTreeInner({ initialData, session }: Props) {
                 if (p.gender === 'female') return isDark ? 'rgba(236,72,153,0.7)' : 'rgba(190,70,120,0.7)'
                 return isDark ? 'rgba(99,102,241,0.55)' : 'rgba(180,120,40,0.55)'
               }}
+              bgColor={isDark ? 'rgba(15,23,42,0.82)' : 'rgba(255,251,242,0.88)'}
               maskColor={isDark ? 'rgba(2,8,23,0.72)' : 'rgba(253,248,240,0.72)'}
+              maskStrokeColor={isDark ? 'rgba(148,163,184,0.45)' : 'rgba(146,64,14,0.32)'}
+              maskStrokeWidth={1.5}
               position="bottom-left"
-              style={{ margin: '16px' }}
+              style={{
+                margin: '16px',
+                width: 220,
+                height: 154,
+                borderRadius: 8,
+                border: '1px solid var(--border-color)',
+                boxShadow: '0 16px 34px rgba(0,0,0,0.24)',
+                cursor: 'grab',
+                pointerEvents: 'all',
+              }}
             />
           )}
         </ReactFlow>
