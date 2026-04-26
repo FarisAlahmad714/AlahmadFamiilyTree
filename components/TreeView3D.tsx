@@ -105,6 +105,7 @@ function BranchParticles({ branches }: { branches: BranchData[] }) {
   const PPB = 6
   const count = branches.length * PPB
   const geoRef = useRef<THREE.BufferGeometry>(null!)
+  const matRef = useRef<THREE.PointsMaterial>(null!)
 
   const posArr = useRef(new Float32Array(count * 3))
   const progArr = useRef(
@@ -117,7 +118,7 @@ function BranchParticles({ branches }: { branches: BranchData[] }) {
     }
   }, [])
 
-  useFrame((_, dt) => {
+  useFrame(({ camera }, dt) => {
     const prog = progArr.current
     const pos  = posArr.current
     const speed = 0.18
@@ -132,7 +133,6 @@ function BranchParticles({ branches }: { branches: BranchData[] }) {
         prog[idx] = (prog[idx] + dt * speed) % 1
         const t = prog[idx]
         const ti = 1 - t
-        // Quadratic bezier
         pos[idx * 3]     = ti * ti * from.x + 2 * ti * t * mx + t * t * to.x
         pos[idx * 3 + 1] = ti * ti * from.y + 2 * ti * t * my + t * t * to.y
         pos[idx * 3 + 2] = 0.08
@@ -142,12 +142,19 @@ function BranchParticles({ branches }: { branches: BranchData[] }) {
     if (geoRef.current?.attributes.position) {
       (geoRef.current.attributes.position as THREE.BufferAttribute).needsUpdate = true
     }
+
+    // Scale particle size with camera distance so they stay visible at any zoom
+    if (matRef.current) {
+      const dist = camera.position.z
+      matRef.current.size = Math.max(0.035, 0.09 * Math.max(dist, 3) / 22)
+    }
   })
 
   return (
     <points>
       <bufferGeometry ref={geoRef} />
       <pointsMaterial
+        ref={matRef}
         size={0.09}
         color="#a5b4fc"
         transparent
@@ -442,7 +449,7 @@ function Scene({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const orbitRef = useRef<any>(null!)
 
-  // Pre-compute branch array for particle system
+  // Pre-compute parent→child branch array
   const branches = useMemo<BranchData[]>(() =>
     people.flatMap((p) => {
       if (!p.parentId) return []
@@ -453,6 +460,25 @@ function Scene({
     }),
     [people, positions]
   )
+
+  // Spouse connection lines — deduplicated pairs
+  const spouseBranches = useMemo<BranchData[]>(() => {
+    const seen = new Set<string>()
+    return people.flatMap((p) => {
+      if (!p.spouseIds || p.spouseIds.length === 0) return []
+      return p.spouseIds.flatMap((sid) => {
+        const key = [p.id, sid].sort().join('|')
+        if (seen.has(key)) return []
+        seen.add(key)
+        const from = positions.get(p.id)
+        const to   = positions.get(sid)
+        if (!from || !to) return []
+        return [{ from, to, isFemale: p.gender === 'female' }]
+      })
+    })
+  }, [people, positions])
+
+  const allBranches = useMemo(() => [...branches, ...spouseBranches], [branches, spouseBranches])
 
   const patriarchPos = positions.get('abubakr')
 
@@ -495,7 +521,7 @@ function Scene({
       {/* ── Patriarch pillar of light ── */}
       {patriarchPos && <PatriarchPillar position={patriarchPos} treeHeight={treeHeight} />}
 
-      {/* ── Branches ── */}
+      {/* ── Parent→child branches ── */}
       {branches.map(({ from, to, isFemale }) => (
         <Branch
           key={`b-${from.x.toFixed(3)}-${to.x.toFixed(3)}-${to.y.toFixed(3)}`}
@@ -503,8 +529,16 @@ function Scene({
         />
       ))}
 
-      {/* ── Particle flows along branches ── */}
-      <BranchParticles branches={branches} />
+      {/* ── Spouse connection lines ── */}
+      {spouseBranches.map(({ from, to, isFemale }) => (
+        <Branch
+          key={`s-${from.x.toFixed(3)}-${to.x.toFixed(3)}-${to.y.toFixed(3)}`}
+          from={from} to={to} isFemale={isFemale} treeHeight={treeHeight}
+        />
+      ))}
+
+      {/* ── Particle flows along all branches (parent + spouse) ── */}
+      <BranchParticles branches={allBranches} />
 
       {/* ── Person spheres ── */}
       {people.map((p) => {

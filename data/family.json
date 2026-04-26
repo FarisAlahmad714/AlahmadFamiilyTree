@@ -10,6 +10,7 @@
       "spouseIds": [],
       "birthYear": null,
       "deathYear": null,
+      "deceased": true,
       "location": null,
       "notes": "Family patriarch — root of the Alahmad line",
       "photos": []
@@ -24,6 +25,7 @@
       "spouseIds": [],
       "birthYear": null,
       "deathYear": null,
+      "deceased": true,
       "location": null,
       "notes": null,
       "photos": []
@@ -38,6 +40,7 @@
       "spouseIds": [],
       "birthYear": null,
       "deathYear": null,
+      "deceased": true,
       "location": null,
       "notes": null,
       "photos": []
@@ -52,6 +55,7 @@
       "spouseIds": [],
       "birthYear": null,
       "deathYear": null,
+      "deceased": true,
       "location": null,
       "notes": null,
       "photos": []
@@ -66,6 +70,7 @@
       "spouseIds": [],
       "birthYear": null,
       "deathYear": null,
+      "deceased": true,
       "location": null,
       "notes": null,
       "photos": []
@@ -83,6 +88,7 @@
       ],
       "birthYear": null,
       "deathYear": null,
+      "deceased": true,
       "location": null,
       "notes": null,
       "photos": []
@@ -133,6 +139,7 @@
       ],
       "birthYear": null,
       "deathYear": null,
+      "deceased": true,
       "location": null,
       "notes": null,
       "photos": []
@@ -167,6 +174,7 @@
       ],
       "birthYear": null,
       "deathYear": null,
+      "deceased": true,
       "location": null,
       "notes": null,
       "photos": []
@@ -184,6 +192,7 @@
       ],
       "birthYear": null,
       "deathYear": null,
+      "deceased": true,
       "location": null,
       "notes": null,
       "photos": []
@@ -249,6 +258,7 @@
       ],
       "birthYear": null,
       "deathYear": null,
+      "deceased": true,
       "location": null,
       "notes": "Wife of Farooq",
       "photos": []

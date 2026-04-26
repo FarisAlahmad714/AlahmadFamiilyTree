@@ -20,15 +20,29 @@ export type PersonNodeType = Node<
 >
 
 function SpouseHeartBadge({ spouse, onSelect }: { spouse: Person; onSelect: (p: Person) => void }) {
-  const initial = spouse.firstName.charAt(0).toUpperCase()
-  const label   = `${spouse.firstName}${spouse.surname ? ' ' + spouse.surname : ''}`
+  const initial     = spouse.firstName.charAt(0).toUpperCase()
+  const label       = `${spouse.firstName}${spouse.surname ? ' ' + spouse.surname : ''}`
+  const spouseGone  = !!(spouse.deceased || spouse.deathYear)
   return (
     <div
       title={label}
       onClick={(e) => { e.stopPropagation(); onSelect(spouse) }}
-      style={{ width: 30, height: 30, flexShrink: 0, cursor: 'pointer' }}
+      style={{ width: 30, height: spouseGone ? 36 : 30, flexShrink: 0, cursor: 'pointer' }}
     >
-      <svg viewBox="0 0 32 30" width={30} height={30} style={{ filter: 'drop-shadow(0 2px 5px rgba(0,0,0,0.35))' }}>
+      <svg
+        viewBox={spouseGone ? '0 -6 32 36' : '0 0 32 30'}
+        width={30}
+        height={spouseGone ? 36 : 30}
+        style={{ filter: 'drop-shadow(0 2px 5px rgba(0,0,0,0.35))' }}
+      >
+        {spouseGone && (
+          <>
+            {/* Left mini wing */}
+            <path d="M 10,-1 C 6,-5 0,-4 0,-2 C 1,0 7,0 10,1" fill="rgba(255,255,255,0.55)" stroke="rgba(255,255,255,0.7)" strokeWidth="0.6"/>
+            {/* Right mini wing */}
+            <path d="M 22,-1 C 26,-5 32,-4 32,-2 C 31,0 25,0 22,1" fill="rgba(255,255,255,0.55)" stroke="rgba(255,255,255,0.7)" strokeWidth="0.6"/>
+          </>
+        )}
         <path
           d="M16 27C16 27 2 18.5 2 10.5C2 6.358 5.358 3 9.5 3C11.824 3 13.9 4.05 15.3 5.73C15.68 6.19 16.32 6.19 16.7 5.73C18.1 4.05 20.176 3 22.5 3C26.642 3 30 6.358 30 10.5C30 18.5 16 27 16 27Z"
           fill="#e63946"
@@ -53,11 +67,12 @@ function PersonNode({ data, selected }: NodeProps<PersonNodeType>) {
   const language = useLanguage()
   const [photoModal, setPhotoModal] = useState(false)
   const displayName = language === 'ar' && person.firstNameAr ? person.firstNameAr : person.firstName
-  const isRoot = !person.parentId && !person.spouseIds.some(() => true)
+  const isRoot      = !person.parentId && !person.spouseIds.some(() => true)
   // A "true root" is AbuBakr — no parent, not married in
   const isPatriarch = person.id === 'abubakr'
-  const isFemale = person.gender === 'female'
-  const isSpouseIn = !person.parentId && person.spouseIds.length > 0
+  const isFemale    = person.gender === 'female'
+  const isSpouseIn  = !person.parentId && person.spouseIds.length > 0
+  const isDeceased  = !!(person.deathYear || person.deceased)
 
   const accent = isFemale ? 'var(--accent-female)' : 'var(--accent)'
   const accentGlow = isFemale ? 'rgba(236,72,153,0.3)' : 'var(--accent-glow)'
@@ -115,6 +130,23 @@ function PersonNode({ data, selected }: NodeProps<PersonNodeType>) {
             )
           }
         </div>
+      )}
+
+      {/* Angel wings — shown for deceased persons, sit behind the card */}
+      {isDeceased && (
+        <svg
+          viewBox="0 0 244 64"
+          style={{ position: 'absolute', top: 0, left: -24, width: 244, height: 64, pointerEvents: 'none', overflow: 'visible' }}
+        >
+          {/* Left wing — 3 feather layers */}
+          <path d="M 24,12 C 14,5 3,5 0,11 C 3,20 16,21 24,23 Z" fill="rgba(255,255,255,0.40)" stroke="rgba(255,255,255,0.58)" strokeWidth="0.6"/>
+          <path d="M 24,23 C 11,26 1,30 0,26 C 3,34 14,36 24,33 Z" fill="rgba(255,255,255,0.34)" stroke="rgba(255,255,255,0.52)" strokeWidth="0.6"/>
+          <path d="M 24,33 C 13,37 2,42 1,40 C 5,46 16,46 24,43 Z" fill="rgba(255,255,255,0.28)" stroke="rgba(255,255,255,0.44)" strokeWidth="0.6"/>
+          {/* Right wing — mirror */}
+          <path d="M 220,12 C 230,5 241,5 244,11 C 241,20 228,21 220,23 Z" fill="rgba(255,255,255,0.40)" stroke="rgba(255,255,255,0.58)" strokeWidth="0.6"/>
+          <path d="M 220,23 C 233,26 243,30 244,26 C 241,34 230,36 220,33 Z" fill="rgba(255,255,255,0.34)" stroke="rgba(255,255,255,0.52)" strokeWidth="0.6"/>
+          <path d="M 220,33 C 231,37 242,42 243,40 C 239,46 228,46 220,43 Z" fill="rgba(255,255,255,0.28)" stroke="rgba(255,255,255,0.44)" strokeWidth="0.6"/>
+        </svg>
       )}
 
       <div
