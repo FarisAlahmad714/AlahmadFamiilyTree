@@ -143,40 +143,28 @@ function PersonNode({ data, selected }: NodeProps<PersonNodeType>) {
         </div>
       )}
 
-      {/* Angel wings — shown for deceased persons */}
+      {/* Angel wings — 3 separate pieces for deceased persons */}
       {isDeceased && (
-        // eslint-disable-next-line @next/next/no-img-element
         <>
-          {/* Wings (halo removed from this image) */}
+          {/* Left wing — anchored to left edge of card, extends outward */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            alt=""
-            src="/angel-wings-transparent.png"
-            style={{
-              position: 'absolute',
-              width: 260,
-              top: -88,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              pointerEvents: 'none',
-              userSelect: 'none',
-            }}
-          />
-          {/* Halo — sits straddling the top center of the card */}
+          <img alt="" src="/wing-left.png" style={{
+            position: 'absolute', width: 160, top: -110,
+            right: '72%', pointerEvents: 'none', userSelect: 'none',
+          }} />
+          {/* Right wing — anchored to right edge of card, extends outward */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            alt=""
-            src="/angel-halo.png"
-            style={{
-              position: 'absolute',
-              width: 110,
-              top: -24,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              pointerEvents: 'none',
-              userSelect: 'none',
-            }}
-          />
+          <img alt="" src="/wing-right.png" style={{
+            position: 'absolute', width: 160, top: -110,
+            left: '72%', pointerEvents: 'none', userSelect: 'none',
+          }} />
+          {/* Halo — floats above card center */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img alt="" src="/angel-halo.png" style={{
+            position: 'absolute', width: 100, top: -48,
+            left: '50%', transform: 'translateX(-50%)',
+            pointerEvents: 'none', userSelect: 'none',
+          }} />
         </>
       )}
 
