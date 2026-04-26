@@ -275,6 +275,7 @@
       ],
       "birthYear": null,
       "deathYear": null,
+      "deceased": true,
       "location": null,
       "notes": "Husband of Nawal",
       "photos": []
