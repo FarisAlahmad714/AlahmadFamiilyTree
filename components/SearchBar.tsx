@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useMemo, useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Search, X } from 'lucide-react'
 import type { Person } from '@/lib/family-data'
@@ -16,6 +16,7 @@ export default function SearchBar({ people, onSelect, onClose }: Props) {
   const [query, setQuery] = useState('')
   const language = useLanguage()
   const inputRef = useRef<HTMLInputElement>(null)
+  const peopleById = useMemo(() => new Map(people.map((p) => [p.id, p])), [people])
 
   useEffect(() => { inputRef.current?.focus() }, [])
 
@@ -25,19 +26,46 @@ export default function SearchBar({ people, onSelect, onClose }: Props) {
     return () => window.removeEventListener('keydown', handler)
   }, [onClose])
 
-  const results = query.trim()
-    ? people
-        .filter((p) => {
-          const q = query.toLowerCase()
-          return (
-            p.firstName.toLowerCase().includes(q) ||
-            (p.firstNameAr?.includes(query)) ||
-            (p.surname?.toLowerCase().includes(q)) ||
-            (p.location?.toLowerCase().includes(q))
-          )
-        })
-        .slice(0, 8)
-    : []
+  const displayNameFor = (p: Person) =>
+    language === 'ar' && p.firstNameAr ? p.firstNameAr : p.firstName
+
+  const displaySurnameFor = (p: Person) =>
+    language === 'ar' && p.surnameAr ? p.surnameAr : p.surname
+
+  const subtitleFor = (p: Person) => {
+    const parent = p.parentId ? peopleById.get(p.parentId) : null
+    if (parent) {
+      const relation = p.gender === 'female' ? 'Daughter of' : 'Son of'
+      return `${relation} ${displayNameFor(parent)}`
+    }
+    const spouse = p.spouseIds.map((id) => peopleById.get(id)).find(Boolean)
+    if (spouse) return `Spouse of ${displayNameFor(spouse)}`
+    return 'Family root'
+  }
+
+  const results = (() => {
+    const q = query.trim().toLowerCase()
+    if (!q) {
+      return people.filter((p) => !p.parentId || p.photos?.length).slice(0, 8)
+    }
+    return people
+      .filter((p) => {
+        const haystack = [
+          p.firstName,
+          p.firstNameAr,
+          p.surname,
+          p.surnameAr,
+          p.fullName,
+          p.location,
+          subtitleFor(p),
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
+        return haystack.includes(q) || p.firstNameAr?.includes(query) || p.surnameAr?.includes(query)
+      })
+      .slice(0, 8)
+  })()
 
   return (
     <motion.div
@@ -84,7 +112,9 @@ export default function SearchBar({ people, onSelect, onClose }: Props) {
         {results.length > 0 && (
           <div style={{ borderTop: '1px solid var(--border-color)' }}>
             {results.map((p) => {
-              const name = language === 'ar' && p.firstNameAr ? p.firstNameAr : p.firstName
+              const name = displayNameFor(p)
+              const surname = displaySurnameFor(p)
+              const subtitle = subtitleFor(p)
               return (
                 <button
                   key={p.id}
@@ -131,7 +161,10 @@ export default function SearchBar({ people, onSelect, onClose }: Props) {
                       )}
                     </div>
                     <div style={{ fontSize: 11, color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {[p.surname, p.birthYear && `b. ${p.birthYear}`, p.location].filter(Boolean).join(' · ')}
+                      {subtitle}
+                    </div>
+                    <div style={{ fontSize: 10.5, color: 'var(--text-secondary)', opacity: 0.78, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {[surname, p.birthYear && `b. ${p.birthYear}`, p.location].filter(Boolean).join(' · ')}
                     </div>
                   </div>
                 </button>

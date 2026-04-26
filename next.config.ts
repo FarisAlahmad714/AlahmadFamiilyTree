@@ -1,7 +1,9 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  // Allow writing to data directory
+  turbopack: {
+    root: process.cwd(),
+  },
 }
 
 export default nextConfig

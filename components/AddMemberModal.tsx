@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { X, UserPlus } from 'lucide-react'
 import type { Person } from '@/lib/family-data'
+import { buildNameTranslationPairs, resolveBilingualName } from '@/lib/name-translation'
 
 interface Props {
   allPeople: Person[]
@@ -14,7 +15,9 @@ interface Props {
 export default function AddMemberModal({ allPeople, onClose, onAdd }: Props) {
   const [form, setForm] = useState({
     firstName: '',
+    firstNameAr: '',
     surname: 'Alahmad',
+    surnameAr: 'الأحمد',
     gender: 'male' as 'male' | 'female' | 'other',
     parentId: null as string | null,
     spouseIds: [] as string[],
@@ -26,13 +29,24 @@ export default function AddMemberModal({ allPeople, onClose, onAdd }: Props) {
     photo: null as string | null,
   })
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const namePairs = useMemo(() => buildNameTranslationPairs(allPeople), [allPeople])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError('')
+    const firstName = resolveBilingualName(form.firstName, form.firstNameAr, '', '', namePairs)
+    const surname = resolveBilingualName(form.surname, form.surnameAr, 'Alahmad', 'الأحمد', namePairs)
+    if (!firstName.english && !firstName.arabic) {
+      setError('Enter the name in English or Arabic.')
+      return
+    }
     setLoading(true)
     await onAdd({
-      firstName: form.firstName,
-      surname: form.surname,
+      firstName: firstName.english || firstName.arabic,
+      firstNameAr: firstName.arabic || undefined,
+      surname: surname.english || null,
+      surnameAr: surname.arabic || undefined,
       gender: form.gender,
       parentId: form.parentId || null,
       spouseIds: form.spouseIds,
@@ -108,11 +122,24 @@ export default function AddMemberModal({ allPeople, onClose, onAdd }: Props) {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div
+              style={{
+                padding: '9px 11px',
+                borderRadius: '10px',
+                background: 'rgba(239,68,68,0.10)',
+                border: '1px solid rgba(239,68,68,0.25)',
+                color: '#ef4444',
+                fontSize: '12px',
+              }}
+            >
+              {error}
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label style={labelStyle}>First Name *</label>
+              <label style={labelStyle}>First Name</label>
               <input
-                required
                 style={inputStyle}
                 value={form.firstName}
                 onChange={(e) => setForm((f) => ({ ...f, firstName: e.target.value }))}
@@ -120,11 +147,35 @@ export default function AddMemberModal({ allPeople, onClose, onAdd }: Props) {
               />
             </div>
             <div>
+              <label style={{ ...labelStyle, fontFamily: 'var(--font-arabic)', direction: 'rtl', textAlign: 'right' }}>
+                الاسم بالعربي
+              </label>
+              <input
+                style={{ ...inputStyle, direction: 'rtl', fontFamily: 'var(--font-arabic)', textAlign: 'right' }}
+                value={form.firstNameAr}
+                onChange={(e) => setForm((f) => ({ ...f, firstNameAr: e.target.value }))}
+                placeholder="خالد"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
               <label style={labelStyle}>Surname</label>
               <input
                 style={inputStyle}
                 value={form.surname}
                 onChange={(e) => setForm((f) => ({ ...f, surname: e.target.value }))}
+              />
+            </div>
+            <div>
+              <label style={{ ...labelStyle, fontFamily: 'var(--font-arabic)', direction: 'rtl', textAlign: 'right' }}>
+                اسم العائلة
+              </label>
+              <input
+                style={{ ...inputStyle, direction: 'rtl', fontFamily: 'var(--font-arabic)', textAlign: 'right' }}
+                value={form.surnameAr}
+                onChange={(e) => setForm((f) => ({ ...f, surnameAr: e.target.value }))}
               />
             </div>
           </div>

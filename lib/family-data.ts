@@ -6,7 +6,8 @@ export interface Person {
   firstName: string
   firstNameAr?: string
   fullName?: string
-  surname: string
+  surname: string | null
+  surnameAr?: string | null
   gender: 'male' | 'female' | 'other'
   parentId: string | null
   motherId?: string | null

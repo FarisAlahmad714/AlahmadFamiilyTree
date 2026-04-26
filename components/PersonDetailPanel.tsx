@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useMemo, useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Edit2, Save, Trash2, Camera, Plus, ChevronLeft, ChevronRight } from 'lucide-react'
 import type { Person } from '@/lib/family-data'
 import type { Session } from '@/lib/auth'
 import { useLanguage } from '@/lib/language-context'
+import { buildNameTranslationPairs, resolveBilingualName } from '@/lib/name-translation'
 
 interface Props {
   person: Person
@@ -29,6 +30,8 @@ export default function PersonDetailPanel({
   const [form, setForm] = useState<Partial<Person>>({
     firstName: person.firstName,
     firstNameAr: person.firstNameAr ?? '',
+    surname: person.surname ?? '',
+    surnameAr: person.surnameAr ?? '',
     birthYear: person.birthYear,
     deathYear: person.deathYear,
     location: person.location,
@@ -45,6 +48,7 @@ export default function PersonDetailPanel({
   const parent = allPeople.find((p) => p.id === person.parentId)
   const children = allPeople.filter((p) => p.parentId === person.id)
   const spouses = allPeople.filter((p) => person.spouseIds.includes(p.id))
+  const namePairs = useMemo(() => buildNameTranslationPairs(allPeople), [allPeople])
 
   // Lineage chain: walk parentId chain up to root
   const lineage: Person[] = []
@@ -56,14 +60,32 @@ export default function PersonDetailPanel({
 
   const displayName =
     language === 'ar' && person.firstNameAr ? person.firstNameAr : person.firstName
+  const displaySurname =
+    language === 'ar' && person.surnameAr ? person.surnameAr : person.surname
 
   // ─── Save edits ─────────────────────────────────────────────────────────────
   const handleSave = async () => {
     setSaving(true)
+    const firstName = resolveBilingualName(
+      form.firstName,
+      form.firstNameAr,
+      person.firstName,
+      person.firstNameAr,
+      namePairs,
+    )
+    const surname = resolveBilingualName(
+      form.surname,
+      form.surnameAr,
+      person.surname,
+      person.surnameAr,
+      namePairs,
+    )
     const cleaned: Partial<Person> = {
       ...form,
-      firstName: form.firstName?.trim() || person.firstName,
-      firstNameAr: form.firstNameAr?.trim() || undefined,
+      firstName: firstName.english || person.firstName,
+      firstNameAr: firstName.arabic || undefined,
+      surname: surname.english || null,
+      surnameAr: surname.arabic || undefined,
     }
     await onUpdate(cleaned)
     setSaving(false)
@@ -321,8 +343,18 @@ export default function PersonDetailPanel({
                 {language === 'ar' && (
                   <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>{person.firstName}</p>
                 )}
-                {person.surname && (
-                  <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 1 }}>{person.surname}</p>
+                {displaySurname && (
+                  <p
+                    style={{
+                      fontSize: 12,
+                      color: 'var(--text-secondary)',
+                      marginTop: 1,
+                      fontFamily: language === 'ar' && person.surnameAr ? 'var(--font-arabic)' : undefined,
+                      direction: language === 'ar' ? 'rtl' : 'ltr',
+                    }}
+                  >
+                    {displaySurname}
+                  </p>
                 )}
               </div>
 
@@ -376,6 +408,28 @@ export default function PersonDetailPanel({
                       onChange={(e) => setForm((f) => ({ ...f, firstNameAr: e.target.value }))}
                       style={{ ...inputStyle, direction: 'rtl', fontFamily: 'var(--font-arabic)', textAlign: 'right' }}
                       placeholder="الاسم بالعربي"
+                    />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Surname (English)</label>
+                    <input
+                      type="text"
+                      value={form.surname ?? ''}
+                      onChange={(e) => setForm((f) => ({ ...f, surname: e.target.value }))}
+                      style={inputStyle}
+                      placeholder="English surname"
+                    />
+                  </div>
+                  <div>
+                    <label style={{ ...labelStyle, fontFamily: 'var(--font-arabic)', letterSpacing: 0, direction: 'rtl', display: 'block', textAlign: 'right' }}>
+                      اسم العائلة بالعربي
+                    </label>
+                    <input
+                      type="text"
+                      value={form.surnameAr ?? ''}
+                      onChange={(e) => setForm((f) => ({ ...f, surnameAr: e.target.value }))}
+                      style={{ ...inputStyle, direction: 'rtl', fontFamily: 'var(--font-arabic)', textAlign: 'right' }}
+                      placeholder="اسم العائلة بالعربي"
                     />
                   </div>
                   <div style={{ height: 1, background: 'var(--border-color)', margin: '8px 0' }} />

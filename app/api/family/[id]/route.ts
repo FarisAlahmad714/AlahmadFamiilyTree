@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { readFamilyData, writeFamilyData } from '@/lib/family-data'
 import { getSession } from '@/lib/auth'
+import { buildNameTranslationPairs, resolveBilingualName } from '@/lib/name-translation'
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getSession()
@@ -13,7 +14,31 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const idx = data.people.findIndex(p => p.id === id)
   if (idx === -1) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  data.people[idx] = { ...data.people[idx], ...updates }
+  const current = data.people[idx]
+  const namePairs = buildNameTranslationPairs(data.people)
+  const firstName = resolveBilingualName(
+    updates.firstName,
+    updates.firstNameAr,
+    current.firstName,
+    current.firstNameAr,
+    namePairs,
+  )
+  const surname = resolveBilingualName(
+    updates.surname,
+    updates.surnameAr,
+    current.surname,
+    current.surnameAr,
+    namePairs,
+  )
+
+  data.people[idx] = {
+    ...current,
+    ...updates,
+    firstName: firstName.english || current.firstName,
+    firstNameAr: firstName.arabic || undefined,
+    surname: surname.english || null,
+    surnameAr: surname.arabic || undefined,
+  }
   writeFamilyData(data)
 
   return NextResponse.json(data.people[idx])

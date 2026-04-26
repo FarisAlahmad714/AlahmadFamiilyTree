@@ -78,6 +78,7 @@ function PersonNode({ data, selected }: NodeProps<PersonNodeType>) {
   const language = useLanguage()
   const [photoModal, setPhotoModal] = useState(false)
   const displayName = language === 'ar' && person.firstNameAr ? person.firstNameAr : person.firstName
+  const displaySurname = language === 'ar' && person.surnameAr ? person.surnameAr : person.surname
   const isRoot      = !person.parentId && !person.spouseIds.some(() => true)
   // A "true root" is AbuBakr — no parent, not married in
   const isPatriarch = person.id === 'abubakr'
@@ -312,7 +313,7 @@ function PersonNode({ data, selected }: NodeProps<PersonNodeType>) {
                 marginTop: '1px',
               }}
             >
-              {person.surname ? person.surname : isSpouseIn ? 'by marriage' : ''}
+              {displaySurname ? displaySurname : isSpouseIn ? 'by marriage' : ''}
               {person.birthYear && person.deathYear
                 ? ` · ${person.birthYear} – ${person.deathYear}`
                 : person.birthYear && person.deceased

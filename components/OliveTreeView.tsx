@@ -1210,12 +1210,41 @@ function SceneFog({ isDark }: { isDark: boolean }) {
 }
 
 // ── Scene ─────────────────────────────────────────────────────────────────
+function Moon({ isDark }: { isDark: boolean }) {
+  if (!isDark) return null
+  return (
+    <group position={[-34, 31, -42]}>
+      <mesh>
+        <sphereGeometry args={[2.6, 48, 48]} />
+        <meshBasicMaterial color="#f2f7ff" />
+      </mesh>
+      <mesh>
+        <sphereGeometry args={[3.15, 48, 48]} />
+        <meshBasicMaterial color="#b7d4ff" transparent opacity={0.16} depthWrite={false} />
+      </mesh>
+      <pointLight color="#cfe4ff" intensity={2.2} distance={80} decay={1.2} />
+    </group>
+  )
+}
+
+type GroundClampedControls = {
+  object: THREE.Camera
+  target: THREE.Vector3
+}
+
+function clampCameraAboveGround(controls: GroundClampedControls | null) {
+  if (!controls?.object || !controls?.target) return
+  const cameraGround = terrainY(controls.object.position.x, controls.object.position.z) + 0.9
+  if (controls.object.position.y < cameraGround) controls.object.position.y = cameraGround
+  const targetGround = terrainY(controls.target.x, controls.target.z) + 0.25
+  if (controls.target.y < targetGround) controls.target.y = targetGround
+}
+
 interface SceneProps {
   people: Person[]
   selectedPersonId: string | null
   onSelectPerson: (p: Person) => void
   isDark: boolean
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   actionsRef: React.MutableRefObject<TreeView3DHandle>
 }
 
@@ -1230,16 +1259,19 @@ function Scene({ people, selectedPersonId, onSelectPerson, isDark, actionsRef }:
   // Smooth camera zoom-to target
   const zoomTarget = useRef<THREE.Vector3 | null>(null)
   useFrame(() => {
-    if (!zoomTarget.current || !orbitRef.current) return
     const c = orbitRef.current
-    c.target.lerp(zoomTarget.current, 0.09)
-    // Keep camera at a comfortable distance from the target
-    const dir = c.object.position.clone().sub(c.target).normalize()
-    const desiredPos = zoomTarget.current.clone().addScaledVector(dir, 14)
-    c.object.position.lerp(desiredPos, 0.07)
+    if (!c) return
+    if (zoomTarget.current) {
+      c.target.lerp(zoomTarget.current, 0.09)
+      // Keep camera at a comfortable distance from the target
+      const dir = c.object.position.clone().sub(c.target).normalize()
+      const desiredPos = zoomTarget.current.clone().addScaledVector(dir, 14)
+      c.object.position.lerp(desiredPos, 0.07)
+      // Stop once close enough
+      if (c.target.distanceTo(zoomTarget.current) < 0.08) zoomTarget.current = null
+    }
+    clampCameraAboveGround(c)
     c.update()
-    // Stop once close enough
-    if (c.target.distanceTo(zoomTarget.current) < 0.08) zoomTarget.current = null
   })
 
   useEffect(() => {
@@ -1269,6 +1301,7 @@ function Scene({ people, selectedPersonId, onSelectPerson, isDark, actionsRef }:
     <>
       <color attach="background" args={[isDark ? '#07101e' : '#8fbcd6']} />
       <SceneFog isDark={isDark} />
+      <Moon isDark={isDark} />
 
       {/* ── Lighting ── */}
 
@@ -1360,7 +1393,7 @@ function Scene({ people, selectedPersonId, onSelectPerson, isDark, actionsRef }:
         enableDamping dampingFactor={0.07}
         target={[0, canopyMid, 0]}
         minDistance={3} maxDistance={90}
-        minPolarAngle={0.04} maxPolarAngle={Math.PI * 0.87}
+        minPolarAngle={0.04} maxPolarAngle={Math.PI * 0.56}
         enableRotate screenSpacePanning={false}
       />
 
