@@ -19,15 +19,22 @@ for (let i = 0; i < data.length; i += 4) {
   }
 }
 
-// ── 2. Erase the entire center-top region (halo + sparkles) ──────────────────
-// The halo and sparkles sit in the center band of the image.
-// Erase a wide vertical strip from the center so only the wing sides remain.
+// ── 2. Erase halo + sparkles from center region (color-targeted, not rect) ───
+// Only erase pixels that are gold/yellow/orange (halo ring and sparkles).
+// White wing pixels that happen to be in the center area are preserved.
 const cx = Math.floor(width / 2)
-const eraseHalfW = 130   // 260px total strip centered on image
-for (let y = 0; y < 110; y++) {
-  for (let x = cx - eraseHalfW; x < cx + eraseHalfW; x++) {
+for (let y = 0; y < 120; y++) {
+  for (let x = cx - 140; x < cx + 140; x++) {
     const i = (y * width + x) * 4
-    data[i+3] = 0
+    const r = data[i], g = data[i+1], b = data[i+2], a = data[i+3]
+    if (a < 10) continue  // already transparent
+    // Gold/yellow: high red, medium-high green, low blue
+    const isGold = r > 160 && g > 120 && b < 100 && r > g && r > b
+    // Off-white sparkle: high all channels but not pure white
+    const isSparkle = r > 220 && g > 220 && b > 180 && b < 240
+    if (isGold || isSparkle) {
+      data[i+3] = 0
+    }
   }
 }
 
